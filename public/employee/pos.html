@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Point of Sale · BOMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--surface:#141310;
+      --card:#1E1C19;--border:rgba(255,255,255,.07);--mist:#9E9B92;
+      --cream:#F5F0E8;--white:#fff;--green:#34C759;--red:#FF3B30;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+
+    /* ── POS split layout ─── */
+    .pos-layout{display:grid;grid-template-columns:1fr 360px;gap:1rem;height:calc(100vh - 4rem);}
+
+    /* Left: product grid */
+    .products-panel{display:flex;flex-direction:column;gap:1rem;overflow:hidden;}
+    .panel-header{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .panel-title{font-size:1.1rem;font-weight:700;color:var(--white);}
+    .search-wrap{position:relative;flex:1;min-width:180px;}
+    .search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--mist);pointer-events:none;}
+    .search-input{width:100%;padding:.6rem .85rem .6rem 2.3rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;}
+    .search-input:focus{border-color:var(--flame);}
+    .search-input::placeholder{color:var(--mist);opacity:.5;}
+
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.75rem;overflow-y:auto;padding-right:.25rem;}
+    .product-grid::-webkit-scrollbar{width:4px;}
+    .product-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+    .product-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:border-color .15s,transform .12s;user-select:none;}
+    .product-tile:hover{border-color:rgba(255,75,31,.4);transform:translateY(-1px);}
+    .product-tile:active{transform:scale(.97);}
+    .product-tile.out-of-stock{opacity:.45;cursor:not-allowed;}
+    .product-tile.out-of-stock:hover{transform:none;border-color:var(--border);}
+    .tile-name{font-size:.85rem;font-weight:600;color:var(--white);margin-bottom:.3rem;line-height:1.3;}
+    .tile-cat{font-size:.7rem;color:var(--mist);margin-bottom:.6rem;}
+    .tile-price{font-size:1rem;font-weight:700;font-family:'Space Mono',monospace;color:var(--flame);}
+    .tile-stock{font-size:.7rem;color:var(--mist);margin-top:.3rem;}
+    .tile-stock.low{color:var(--amber);}
+    .tile-stock.out{color:var(--red);}
+
+    /* Right: cart panel */
+    .cart-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;}
+    .cart-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .cart-title{font-size:.95rem;font-weight:700;color:var(--white);}
+    .cart-clear{font-size:.75rem;color:var(--mist);background:none;border:none;cursor:pointer;font-family:'Sora',sans-serif;transition:color .15s;}
+    .cart-clear:hover{color:var(--red);}
+
+    .cart-items{flex:1;overflow-y:auto;padding:.75rem;}
+    .cart-items::-webkit-scrollbar{width:4px;}
+    .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+    .cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:.75rem;color:var(--mist);font-size:.85rem;text-align:center;}
+    .cart-empty .empty-icon{font-size:2rem;opacity:.5;}
+
+    .cart-item{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;}
+    .ci-info{flex:1;min-width:0;}
+    .ci-name{font-size:.82rem;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ci-unit{font-size:.72rem;color:var(--mist);}
+    .ci-controls{display:flex;align-items:center;gap:.4rem;margin-top:.4rem;}
+    .qty-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--cream);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+    .qty-btn:hover{background:rgba(255,75,31,.2);border-color:var(--flame);}
+    .qty-display{font-family:'Space Mono',monospace;font-size:.82rem;min-width:24px;text-align:center;}
+    .ci-subtotal{font-family:'Space Mono',monospace;font-size:.85rem;font-weight:700;color:var(--white);flex-shrink:0;align-self:center;}
+    .ci-remove{background:none;border:none;color:var(--mist);cursor:pointer;font-size:1rem;line-height:1;transition:color .12s;flex-shrink:0;align-self:flex-start;padding:.1rem;}
+    .ci-remove:hover{color:var(--red);}
+
+    /* Totals + checkout */
+    .cart-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);}
+    .cart-totals{margin-bottom:1rem;}
+    .total-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--mist);margin-bottom:.35rem;}
+    .total-row.grand{font-size:1.05rem;font-weight:700;color:var(--white);margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);}
+    .total-row .mono{font-family:'Space Mono',monospace;}
+
+    /* Tendered input */
+    .tendered-wrap{margin-bottom:1rem;}
+    .tendered-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mist);margin-bottom:.4rem;}
+    .tendered-input{width:100%;padding:.7rem .9rem;background:#141310;border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Space Mono',monospace;font-size:1rem;outline:none;transition:border-color .15s;}
+    .tendered-input:focus{border-color:var(--flame);}
+    .change-display{display:flex;justify-content:space-between;align-items:center;padding:.5rem .75rem;background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);border-radius:8px;margin-top:.5rem;font-size:.85rem;}
+    .change-display .change-val{font-family:'Space Mono',monospace;font-weight:700;color:var(--green);}
+    .change-display.negative{background:rgba(255,59,48,.08);border-color:rgba(255,59,48,.2);}
+    .change-display.negative .change-val{color:var(--red);}
+
+    .btn-checkout{width:100%;padding:.9rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:10px;color:var(--white);font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.02em;}
+    .btn-checkout:hover:not(:disabled){opacity:.85;}
+    .btn-checkout:disabled{opacity:.45;cursor:not-allowed;}
+
+    /* ── Receipt modal ─── */
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;}
+    .modal-backdrop.open{display:flex;}
+    .receipt-box{background:#1E1C19;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+    .receipt-header{text-align:center;margin-bottom:1.5rem;}
+    .receipt-icon{font-size:2.5rem;margin-bottom:.5rem;}
+    .receipt-title{font-size:1.15rem;font-weight:700;color:var(--white);}
+    .receipt-subtitle{font-size:.78rem;color:var(--mist);margin-top:.25rem;}
+    .receipt-divider{border:none;border-top:1px dashed rgba(255,255,255,.1);margin:1rem 0;}
+    .receipt-row{display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:.4rem;}
+    .receipt-row .label{color:var(--mist);}
+    .receipt-row .val{font-family:'Space Mono',monospace;color:var(--cream);}
+    .receipt-row.grand .val{color:var(--white);font-weight:700;font-size:.95rem;}
+    .receipt-row.change .val{color:var(--green);font-weight:700;}
+    .receipt-id{text-align:center;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--mist);margin-top:1rem;}
+    .btn-new-sale{width:100%;margin-top:1.25rem;padding:.8rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:10px;color:var(--white);font-family:'Sora',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;}
+
+    /* Toast */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+
+    @media(max-width:900px){.pos-layout{grid-template-columns:1fr;} .cart-panel{height:420px;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+  <main class="main-content" style="padding:1.5rem 2rem;display:flex;flex-direction:column;gap:1rem;overflow:hidden;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+      <div>
+        <h1 class="page-title" style="font-size:1.3rem;color:#fff;font-weight:700;">Point of Sale</h1>
+        <p style="font-size:.78rem;color:var(--mist);" id="posDate"></p>
+      </div>
+      <a href="/BOMS-EVAgas/public/employee/orders.html" style="font-size:.82rem;color:var(--mist);text-decoration:none;">View today's sales →</a>
+    </div>
+
+    <!-- POS Body -->
+    <div class="pos-layout">
+
+      <!-- Left: Products -->
+      <div class="products-panel">
+        <div class="panel-header">
+          <span class="panel-title">Products</span>
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input type="text" class="search-input" id="posSearch" placeholder="Search..." oninput="filterProducts()" />
+          </div>
+        </div>
+        <div class="product-grid" id="productGrid">
+          <div style="color:var(--mist);font-size:.85rem;">Loading products...</div>
+        </div>
+      </div>
+
+      <!-- Right: Cart -->
+      <div class="cart-panel">
+        <div class="cart-header">
+          <span class="cart-title">🛒 Cart <span id="cartCount" style="font-size:.78rem;color:var(--mist);font-weight:400;"></span></span>
+          <button class="cart-clear" onclick="clearCart()">Clear all</button>
+        </div>
+
+        <div class="cart-items" id="cartItems">
+          <div class="cart-empty">
+            <span class="empty-icon">🛒</span>
+            <span>Tap a product to add it to the cart</span>
+          </div>
+        </div>
+
+        <div class="cart-footer">
+          <div class="cart-totals">
+            <div class="total-row">
+              <span>Items</span>
+              <span class="mono" id="totalItems">0</span>
+            </div>
+            <div class="total-row grand">
+              <span>Total</span>
+              <span class="mono" id="totalAmount">₱0.00</span>
+            </div>
+          </div>
+
+          <div class="tendered-wrap">
+            <div class="tendered-label">Amount Tendered (₱)</div>
+            <input type="number" class="tendered-input" id="tenderedInput"
+                   placeholder="0.00" min="0" step="0.01"
+                   oninput="updateChange()" />
+            <div class="change-display" id="changeDisplay" style="display:none;">
+              <span>Change</span>
+              <span class="change-val" id="changeVal">₱0.00</span>
+            </div>
+          </div>
+
+          <button class="btn-checkout" id="checkoutBtn" onclick="processCheckout()" disabled>
+            Process Sale
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="receipt-box">
+    <div class="receipt-header">
+      <div class="receipt-icon">✅</div>
+      <div class="receipt-title">Sale Complete!</div>
+      <div class="receipt-subtitle" id="receiptBranch">EVA Gas Trading</div>
+    </div>
+    <hr class="receipt-divider" />
+    <div id="receiptItems"></div>
+    <hr class="receipt-divider" />
+    <div class="receipt-row">
+      <span class="label">Total</span>
+      <span class="val" id="receiptTotal"></span>
+    </div>
+    <div class="receipt-row">
+      <span class="label">Tendered</span>
+      <span class="val" id="receiptTendered"></span>
+    </div>
+    <div class="receipt-row change">
+      <span class="label">Change</span>
+      <span class="val" id="receiptChange"></span>
+    </div>
+    <div class="receipt-id" id="receiptId"></div>
+    <button class="btn-new-sale" onclick="newSale()">New Sale</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar_employee.js"></script>
+<script src="/BOMS-EVAgas/assets/js/employee/pos.js"></script>
+
+</body>
+</html>

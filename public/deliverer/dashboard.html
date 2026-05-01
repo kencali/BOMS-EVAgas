@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard · BOMS Deliverer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;--border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;--white:#fff;--green:#34C759;--blue:#5AC8FA;}
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+    .header-row{margin-bottom:1.75rem;}
+
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:1.75rem;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.2rem;}
+    .stat-label{font-size:.7rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+    .stat-value{font-size:1.4rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .amber{color:var(--amber);}
+    .blue{color:var(--blue);}
+    .green{color:var(--green);}
+
+    .quick-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;align-items:center;gap:1rem;text-decoration:none;color:var(--cream);transition:border-color .2s,transform .15s;margin-bottom:1rem;}
+    .quick-card:hover{border-color:rgba(255,75,31,.3);transform:translateY(-1px);}
+    .quick-icon{font-size:1.8rem;flex-shrink:0;}
+    .quick-label{font-size:1rem;font-weight:600;color:var(--white);}
+    .quick-desc{font-size:.78rem;color:var(--mist);margin-top:.15rem;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+  <main class="main-content">
+
+    <div class="header-row">
+      <h1 class="page-title" id="greeting">Hello! 👋</h1>
+      <p class="page-subtitle" id="dateLabel"></p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value amber" id="statPending">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">On the way</div>
+        <div class="stat-value blue" id="statOtw">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Delivered Today</div>
+        <div class="stat-value green" id="statDone">—</div>
+      </div>
+    </div>
+
+    <!-- Quick link -->
+    <a href="/BOMS-EVAgas/public/deliverer/deliveries.html" class="quick-card">
+      <span class="quick-icon">🚴</span>
+      <div>
+        <div class="quick-label">View My Deliveries</div>
+        <div class="quick-desc">See all assigned routes and update status</div>
+      </div>
+    </a>
+
+  </main>
+</div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar_deliverer.js"></script>
+<script>
+Auth.guard(['deliverer']);
+
+async function loadStats() {
+    try {
+        const data = await Api.get('deliveries/index.php');
+
+        const counts = data.counts;
+        document.getElementById('statPending').textContent = counts['Pending']    ?? 0;
+        document.getElementById('statOtw').textContent     = counts['On the way'] ?? 0;
+        document.getElementById('statDone').textContent    = counts['Delivered']  ?? 0;
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar();
+    const user = Auth.getUser();
+    const h    = new Date().getHours();
+    const name = user.name?.split(' ')[0] || 'there';
+    document.getElementById('greeting').textContent =
+        (h < 12 ? '🌅 Good morning' : h < 17 ? '☀️ Good afternoon' : '🌙 Good evening') + `, ${name}`;
+    document.getElementById('dateLabel').textContent =
+        new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    loadStats();
+});
+</script>
+</body>
+</html>

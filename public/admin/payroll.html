@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payroll · BOMS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+
+    /* ── Header ─────────────────────────────────────── */
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+
+    /* ── Branch switcher ─────────────────────────────── */
+    .branch-switcher{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .branch-view-badge{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;font-weight:600;}
+    .branch-view-badge.own{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .branch-view-badge.other{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .branch-btn{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .branch-btn:hover{border-color:var(--flame);color:var(--flame);}
+    .branch-btn.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    /* ── Period selector + compute panel ─────────────── */
+    .period-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+    .period-field{display:flex;flex-direction:column;gap:.4rem;}
+    .period-field label{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .period-input{padding:.65rem .9rem;background:#141310;border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;}
+    .period-input:focus{border-color:var(--flame);}
+    .days-input{width:90px;}
+
+    .btn-compute{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+    .btn-compute:hover:not(:disabled){opacity:.85;}
+    .btn-compute:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-load{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-load:hover{border-color:var(--flame);color:var(--flame);}
+    .btn-release-all{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.25);border-radius:9px;color:var(--green);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+    .btn-release-all:hover:not(:disabled){background:rgba(52,199,89,.2);}
+    .btn-release-all:disabled{opacity:.5;cursor:not-allowed;}
+
+    /* ── Totals summary ───────────────────────────────── */
+    .totals-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .total-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;}
+    .total-label{font-size:.7rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+    .total-value{font-size:1.15rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .tc-count{display:flex;align-items:center;justify-content:space-between;}
+
+    /* ── Table ───────────────────────────────────────── */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .payroll-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+    .payroll-table thead th{padding:.85rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .payroll-table tbody td{padding:.9rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+    .payroll-table tbody tr:last-child td{border-bottom:none;}
+    .payroll-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+    .col-actions{width:200px;}
+    .mono{font-family:'Space Mono',monospace;}
+    .green{color:var(--green);}
+    .red  {color:var(--red);}
+    .white{color:var(--white);}
+
+    .emp-name{font-weight:600;color:var(--cream);}
+    .emp-pos{font-size:.72rem;color:var(--mist);margin-top:.15rem;}
+
+    .status-badge{display:inline-block;padding:.22rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;}
+    .status-draft{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.25);}
+    .status-released{background:rgba(52,199,89,.1);color:var(--green);border:1px solid rgba(52,199,89,.2);}
+
+    .btn-action{padding:.28rem .65rem;border-radius:7px;border:1px solid;font-family:'Sora',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;transition:all .15s;margin-right:.25rem;}
+    .btn-action.edit-pay{border-color:rgba(90,200,250,.3);color:var(--blue);background:rgba(90,200,250,.08);}
+    .btn-action.edit-pay:hover{background:rgba(90,200,250,.18);}
+    .btn-action.release-one{border-color:rgba(52,199,89,.3);color:var(--green);background:rgba(52,199,89,.08);}
+    .btn-action.release-one:hover{background:rgba(52,199,89,.18);}
+    .btn-action.del-pay{border-color:rgba(255,59,48,.3);color:var(--red);background:rgba(255,59,48,.08);}
+    .btn-action.del-pay:hover{background:rgba(255,59,48,.18);}
+
+    .table-empty{text-align:center;padding:3rem 1rem;color:var(--mist);line-height:2;}
+
+    /* ── Edit Modal ──────────────────────────────────── */
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;}
+    .modal-backdrop.open{display:flex;}
+    .modal-box{background:#1E1C19;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+    .modal-title{font-size:1.1rem;font-weight:700;color:var(--white);}
+    .modal-close{background:none;border:none;color:var(--mist);font-size:1.2rem;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:var(--cream);}
+
+    /* Live preview box */
+    .preview-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+    .preview-item .preview-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mist);margin-bottom:.2rem;}
+    .preview-item .preview-value{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-field{margin-bottom:1rem;}
+    .form-field label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);margin-bottom:.45rem;}
+    .field-input{width:100%;padding:.75rem .9rem;background:#141310;border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.88rem;outline:none;transition:border-color .15s;}
+    .field-input:focus{border-color:var(--flame);}
+    .field-input.error{border-color:var(--red);}
+    .field-error{font-size:.73rem;color:var(--red);margin-top:.35rem;min-height:1em;}
+
+    .modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;}
+    .btn-cancel-modal{padding:.7rem 1.3rem;background:none;border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.88rem;cursor:pointer;transition:all .15s;}
+    .btn-cancel-modal:hover{border-color:var(--mist);color:var(--cream);}
+    .btn-submit{padding:.7rem 1.5rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+
+    /* ── Toast ───────────────────────────────────────── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+
+    @media(max-width:640px){.form-row{grid-template-columns:1fr;}.period-panel{flex-direction:column;align-items:stretch;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Payroll</h1>
+        <p class="page-subtitle">Compute and release employee pay</p>
+      </div>
+      <div class="branch-switcher">
+        <!-- id="viewingBadge" → updated by switchBranch() -->
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- Period selector panel -->
+    <!--
+      id="periodStart"     → read by loadPayroll() and computePayroll()
+      id="periodEnd"       → read by loadPayroll() and computePayroll()
+      id="daysWorkedInput" → read by computePayroll()
+      id="computeBtn"      → disabled by computePayroll(); hidden by switchBranch() on other branch
+      id="releaseAllBtn"   → disabled by releaseAll(); hidden by switchBranch() on other branch
+    -->
+    <div class="period-panel">
+      <div class="period-field">
+        <label for="periodStart">Period Start</label>
+        <input type="date" id="periodStart" class="period-input"/>
+      </div>
+      <div class="period-field">
+        <label for="periodEnd">Period End</label>
+        <input type="date" id="periodEnd" class="period-input"/>
+      </div>
+      <div class="period-field">
+        <label for="daysWorkedInput">Days Worked</label>
+        <input type="number" id="daysWorkedInput" class="period-input days-input"
+               placeholder="e.g. 13" min="0.5" max="31" step="0.5"/>
+      </div>
+
+      <button class="btn-load" onclick="loadPayroll()">↻ Load</button>
+      <button class="btn-compute" id="computeBtn" onclick="computePayroll()">
+        ⊕ Compute Payroll
+      </button>
+      <button class="btn-release-all" id="releaseAllBtn" onclick="releaseAll()">
+        ✓ Release All
+      </button>
+    </div>
+
+    <!-- Totals summary -->
+    <!--
+      id="payrollCount"    → written by loadPayroll()
+      id="totalGross"      → written by loadPayroll() from data.totals.total_gross
+      id="totalDeductions" → written by loadPayroll() from data.totals.total_deductions
+      id="totalNet"        → written by loadPayroll() from data.totals.total_net
+    -->
+    <div class="totals-row">
+      <div class="total-card tc-count">
+        <div>
+          <div class="total-label">Employees</div>
+          <div class="total-value" style="color:var(--white);" id="payrollCount">—</div>
+        </div>
+      </div>
+      <div class="total-card">
+        <div class="total-label">Total Gross</div>
+        <div class="total-value" style="color:var(--amber);" id="totalGross">—</div>
+      </div>
+      <div class="total-card">
+        <div class="total-label">Total Deductions</div>
+        <div class="total-value" style="color:var(--red);" id="totalDeductions">—</div>
+      </div>
+      <div class="total-card">
+        <div class="total-label">Total Net Pay</div>
+        <div class="total-value" style="color:var(--green);" id="totalNet">—</div>
+      </div>
+    </div>
+
+    <!-- Payroll table -->
+    <div class="card">
+      <table class="payroll-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Days</th>
+            <th>Rate/Day</th>
+            <th>Gross Pay</th>
+            <th>Deductions</th>
+            <th>Net Pay</th>
+            <th>Status</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <!-- id="payrollTableBody" → written by renderTable() in payroll.js -->
+        <tbody id="payrollTableBody">
+          <tr><td colspan="8" class="table-empty">
+            Select a period and click ↻ Load.
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Edit Payroll Record Modal ──────────────────────────── -->
+<!--
+  id="editModal"          → opened by openEditModal(), closed by closeEditModal()
+  id="editEmployeeName"   → text set by openEditModal()
+  id="editDaysWorked"     → value read by handleEdit(), pre-filled by openEditModal()
+  id="editDeductions"     → value read by handleEdit(), pre-filled by openEditModal()
+  id="editGrossDisplay"   → text updated live by updateEditPreview()
+  id="editNetDisplay"     → text updated live by updateEditPreview()
+  id="errEditDays"        → error text written by handleEdit()
+  id="errEditDeductions"  → error text written by handleEdit()
+  id="confirmEditBtn"     → disabled + text set by handleEdit()
+-->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Payroll Record</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <!-- Employee name display -->
+    <div style="font-size:.82rem;color:var(--mist);margin-bottom:.3rem;">Employee</div>
+    <div style="font-size:1rem;font-weight:600;color:var(--white);margin-bottom:1rem;"
+         id="editEmployeeName"></div>
+
+    <!-- Live preview of gross and net pay -->
+    <div class="preview-box">
+      <div class="preview-item">
+        <div class="preview-label">Gross Pay</div>
+        <div class="preview-value" style="color:var(--amber);" id="editGrossDisplay">₱0.00</div>
+      </div>
+      <div class="preview-item">
+        <div class="preview-label">Net Pay</div>
+        <div class="preview-value" style="color:var(--green);" id="editNetDisplay">₱0.00</div>
+      </div>
+    </div>
+
+    <!-- Days + Deductions -->
+    <div class="form-row">
+      <div class="form-field">
+        <label for="editDaysWorked">Days Worked</label>
+        <input type="number" id="editDaysWorked" class="field-input"
+               placeholder="0" min="0.5" max="31" step="0.5"
+               oninput="updateEditPreview()"/>
+        <div class="field-error" id="errEditDays"></div>
+      </div>
+      <div class="form-field">
+        <label for="editDeductions">Deductions (₱)</label>
+        <input type="number" id="editDeductions" class="field-input"
+               placeholder="0.00" min="0" step="0.01"
+               oninput="updateEditPreview()"/>
+        <div class="field-error" id="errEditDeductions"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeEditModal()">Cancel</button>
+      <!-- id="confirmEditBtn" → disabled + text set by handleEdit() -->
+      <button class="btn-submit" id="confirmEditBtn" onclick="handleEdit()">
+        Save Changes
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast — id="toast" → written by showToast() in payroll.js -->
+<div class="toast" id="toast"></div>
+
+<!-- Script load order: api → auth → sidebar → page logic -->
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/payroll.js"></script>
+</body>
+</html>

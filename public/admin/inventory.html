@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventory · BOMS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+
+    /* ── Header ─────────────────────────────────────── */
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+
+    /* ── Branch switcher ─────────────────────────────── */
+    .branch-switcher{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .branch-view-badge{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;font-weight:600;}
+    .branch-view-badge.own{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .branch-view-badge.other{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .branch-btn{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .branch-btn:hover{border-color:var(--flame);color:var(--flame);}
+    .branch-btn.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    /* ── Summary cards ───────────────────────────────── */
+    .summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .summary-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;}
+    .summary-label{font-size:.7rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+    .summary-value{font-size:1.5rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .sv-white{color:var(--white);}
+    .sv-red  {color:var(--red);}
+    .sv-amber{color:var(--amber);}
+    .sv-green{color:var(--green);}
+
+    /* ── Toolbar ─────────────────────────────────────── */
+    .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .filter-tabs{display:flex;gap:.5rem;}
+    .filter-tab{padding:.4rem .85rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .filter-tab:hover{border-color:var(--flame);color:var(--flame);}
+    .filter-tab.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+    .count-label{font-size:.78rem;color:var(--mist);margin-left:auto;}
+
+    /* ── Table ───────────────────────────────────────── */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .inv-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+    .inv-table thead th{padding:.85rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .inv-table tbody td{padding:.9rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+    .inv-table tbody tr:last-child td{border-bottom:none;}
+    .inv-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+    .col-actions{width:110px;}
+    .mono{font-family:'Space Mono',monospace;}
+
+    .prod-name{font-weight:600;color:var(--cream);}
+    .prod-cat{font-size:.72rem;color:var(--mist);margin-top:.15rem;}
+
+    /* Stock value colors */
+    .stock-value{font-family:'Space Mono',monospace;font-size:1.05rem;font-weight:700;}
+    .stock-out{color:var(--red);}
+    .stock-low{color:var(--amber);}
+    .stock-ok {color:var(--green);}
+
+    /* Level badge */
+    .level-badge{display:inline-block;padding:.22rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;}
+    .level-badge.stock-out{background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.25);}
+    .level-badge.stock-low{background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.25);}
+    .level-badge.stock-ok {background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.2);}
+
+    /* Action button */
+    .btn-action.adjust{padding:.32rem .75rem;border-radius:7px;border:1px solid rgba(90,200,250,.3);color:var(--blue);background:rgba(90,200,250,.08);font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-action.adjust:hover{background:rgba(90,200,250,.18);}
+
+    .table-empty{text-align:center;padding:3rem 1rem;color:var(--mist);}
+
+    /* ── Adjust Modal ────────────────────────────────── */
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;}
+    .modal-backdrop.open{display:flex;}
+    .modal-box{background:#1E1C19;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+    .modal-title{font-size:1.1rem;font-weight:700;color:var(--white);}
+    .modal-close{background:none;border:none;color:var(--mist);font-size:1.2rem;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:var(--cream);}
+
+    /* Current stock display in modal */
+    .current-stock-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;}
+    .csb-label{font-size:.75rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;}
+    .csb-value{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--white);}
+
+    .form-field{margin-bottom:1rem;}
+    .form-field label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);margin-bottom:.45rem;}
+    .field-input{width:100%;padding:.75rem .9rem;background:#141310;border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.88rem;outline:none;transition:border-color .15s;}
+    .field-input:focus{border-color:var(--flame);}
+    .field-input.error{border-color:var(--red);}
+    .field-error{font-size:.73rem;color:var(--red);margin-top:.35rem;min-height:1em;}
+
+    /* Adjust type segmented control */
+    .adjust-type-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1rem;}
+    .adjust-type-group input[type="radio"]{display:none;}
+    .adjust-type-group label{padding:.6rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;user-select:none;}
+    .adjust-type-group input[type="radio"]:checked + label{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    .modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;}
+    .btn-cancel-modal{padding:.7rem 1.3rem;background:none;border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.88rem;cursor:pointer;transition:all .15s;}
+    .btn-cancel-modal:hover{border-color:var(--mist);color:var(--cream);}
+    .btn-submit{padding:.7rem 1.5rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+
+    /* ── Toast ───────────────────────────────────────── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+
+    @media(max-width:640px){.summary-grid{grid-template-columns:1fr 1fr;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Inventory</h1>
+        <p class="page-subtitle">Monitor and adjust stock levels</p>
+      </div>
+      <div class="branch-switcher">
+        <!-- id="viewingBadge" → updated by switchBranch() in inventory.js -->
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <!--
+      id="summaryTotal" → written by loadInventory() from data.summary.total_products
+      id="summaryOut"   → written by loadInventory() from data.summary.out_of_stock
+      id="summaryLow"   → written by loadInventory() from data.summary.low_stock
+      id="summaryOk"    → written by loadInventory() from data.summary.ok_stock
+    -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">Total Products</div>
+        <div class="summary-value sv-white" id="summaryTotal">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Out of Stock</div>
+        <div class="summary-value sv-red" id="summaryOut">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Low Stock</div>
+        <div class="summary-value sv-amber" id="summaryLow">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Sufficient</div>
+        <div class="summary-value sv-green" id="summaryOk">—</div>
+      </div>
+    </div>
+
+    <!-- Toolbar with filter tabs -->
+    <div class="toolbar">
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="loadInventory(); this.classList.add('active'); document.querySelectorAll('.filter-tab')[1].classList.remove('active');">
+          All Stock
+        </button>
+        <button class="filter-tab" onclick="filterLow(); this.classList.add('active'); document.querySelectorAll('.filter-tab')[0].classList.remove('active');">
+          ⚠️ Low / Out Only
+        </button>
+      </div>
+      <!-- id="inventoryCount" → written by loadInventory() -->
+      <span class="count-label" id="inventoryCount"></span>
+    </div>
+
+    <!-- Inventory table -->
+    <div class="card">
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th class="col-actions">Action</th>
+          </tr>
+        </thead>
+        <!-- id="inventoryTableBody" → written by renderTable() in inventory.js -->
+        <tbody id="inventoryTableBody">
+          <tr><td colspan="5" class="table-empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Stock Adjustment Modal ─────────────────────────────── -->
+<!--
+  id="adjustModal"         → opened by openAdjustModal(), closed by closeAdjustModal()
+  id="adjustModalTitle"    → text set by openAdjustModal()
+  id="adjustProductName"   → text set by openAdjustModal()
+  id="currentStockDisplay" → text set by openAdjustModal()
+  id="adjustType"          → value read by handleAdjust() — hidden radio select
+  id="adjustAmount"        → value read by handleAdjust()
+  id="adjustReason"        → value read by handleAdjust()
+  id="errAdjustAmount"     → error text written by handleAdjust()
+  id="confirmAdjustBtn"    → disabled + text set by handleAdjust()
+-->
+<div class="modal-backdrop" id="adjustModal">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h3 class="modal-title" id="adjustModalTitle">Adjust Stock</h3>
+      <button class="modal-close" onclick="closeAdjustModal()">✕</button>
+    </div>
+
+    <!-- Product name display -->
+    <div style="font-size:.82rem;color:var(--mist);margin-bottom:.75rem;">Product</div>
+    <div style="font-size:1rem;font-weight:600;color:var(--white);margin-bottom:1rem;"
+         id="adjustProductName"></div>
+
+    <!-- Current stock reference box -->
+    <div class="current-stock-box">
+      <span class="csb-label">Current Stock</span>
+      <span class="csb-value" id="currentStockDisplay">—</span>
+    </div>
+
+    <!-- Adjust type: Add / Subtract / Set exact -->
+    <div class="form-field">
+      <label>Adjustment Type</label>
+      <!--
+        These radio inputs use a custom CSS trick:
+        The real <select> with id="adjustType" is hidden below.
+        The radios change the hidden select's value via onclick.
+        This gives a nicer UI while keeping the JS logic simple.
+      -->
+      <div class="adjust-type-group">
+        <input type="radio" name="adj" id="adjAdd"      checked
+               onclick="document.getElementById('adjustType').value='add'"/>
+        <label for="adjAdd">＋ Add</label>
+
+        <input type="radio" name="adj" id="adjSubtract"
+               onclick="document.getElementById('adjustType').value='subtract'"/>
+        <label for="adjSubtract">− Subtract</label>
+
+        <input type="radio" name="adj" id="adjSet"
+               onclick="document.getElementById('adjustType').value='set'"/>
+        <label for="adjSet">= Set exact</label>
+      </div>
+      <!-- Hidden select that handleAdjust() reads via getElementById('adjustType').value -->
+      <select id="adjustType" style="display:none;">
+        <option value="add">add</option>
+        <option value="subtract">subtract</option>
+        <option value="set">set</option>
+      </select>
+    </div>
+
+    <!-- Amount -->
+    <div class="form-field">
+      <label for="adjustAmount">Amount (units)</label>
+      <input type="number" id="adjustAmount" class="field-input"
+             placeholder="0" min="0"/>
+      <div class="field-error" id="errAdjustAmount"></div>
+    </div>
+
+    <!-- Reason (optional but good practice) -->
+    <div class="form-field">
+      <label for="adjustReason">Reason (optional)</label>
+      <input type="text" id="adjustReason" class="field-input"
+             placeholder="e.g. Stock delivery, damaged goods, correction"/>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeAdjustModal()">Cancel</button>
+      <!-- id="confirmAdjustBtn" → disabled + text set by handleAdjust() -->
+      <button class="btn-submit" id="confirmAdjustBtn" onclick="handleAdjust()">
+        Confirm Adjustment
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast — id="toast" → written by showToast() -->
+<div class="toast" id="toast"></div>
+
+<!-- Script order: api → auth → sidebar → page logic -->
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/inventory.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<?php
+// ============================================================
+// FILE: api/sales/index.php
+// PURPOSE: Sales records — view history and create new sales.
+//
+// ROUTES:
+//   GET  /api/sales/index.php              → sales list (admin)
+//   GET  /api/sales/index.php?id=5         → single sale detail
+//   POST /api/sales/index.php              → create sale (employee/admin)
+//   GET  /api/sales/index.php?summary=1    → totals for dashboard
+//
+// ACCESS:
+//   GET  → admin (full list) | employee (own branch today)
+//   POST → admin + employee
+// ============================================================
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../helpers/response.php';
+require_once __DIR__ . '/../helpers/auth_check.php';
+
+setJsonHeaders();
+
+$method = $_SERVER['REQUEST_METHOD'];
+$user   = requireAuth(['admin', 'employee']);
+$db     = getDB();
+
+// ── GET: Sales list or single sale ────────────────────────
+if ($method === 'GET') {
+
+    // Single sale detail (with items)
+    if (isset($_GET['id'])) {
+        $saleId = (int)$_GET['id'];
+
+        $stmt = $db->prepare("
+            SELECT s.id, s.branch_id, s.total_amount, s.amount_tendered,
+                   s.change_amount, s.sale_date, s.created_by,
+                   u.full_name AS cashier_name
+            FROM sales s
+            LEFT JOIN users u ON u.id = s.created_by
+            WHERE s.id = ? AND s.branch_id = ?
+        ");
+        $stmt->execute([$saleId, $user['branch_id']]);
+        $sale = $stmt->fetch();
+        if (!$sale) sendError('Sale not found.', 404);
+
+        // Get line items
+        $itemStmt = $db->prepare("
+            SELECT si.quantity, si.unit_price, si.subtotal,
+                   p.product_name, p.category
+            FROM sale_items si
+            JOIN products p ON p.id = si.product_id
+            WHERE si.sale_id = ?
+        ");
+        $itemStmt->execute([$saleId]);
+        $sale['items'] = $itemStmt->fetchAll();
+
+        sendSuccess($sale);
+    }
+
+    // Branch filter — admin can view other branch (read-only analytics)
+    $branchId = isset($_GET['branch_id'])
+        ? (int)$_GET['branch_id']
+        : $user['branch_id'];
+
+    requireBranchAccess($user, $branchId, 'read');
+
+    // Date range filter (defaults to current month)
+    $dateFrom = $_GET['date_from'] ?? date('Y-m-01');
+    $dateTo   = $_GET['date_to']   ?? date('Y-m-d');
+
+    // Summary totals only (used by dashboard)
+    if (isset($_GET['summary'])) {
+        $stmt = $db->prepare("
+            SELECT
+                COUNT(*)               AS total_transactions,
+                COALESCE(SUM(total_amount), 0) AS total_revenue,
+                COALESCE(AVG(total_amount), 0) AS avg_sale
+            FROM sales
+            WHERE branch_id = ?
+              AND DATE(sale_date) BETWEEN ? AND ?
+        ");
+        $stmt->execute([$branchId, $dateFrom, $dateTo]);
+        sendSuccess($stmt->fetch());
+    }
+
+    // Employee: only see today's sales on their branch
+    if ($user['role'] === 'employee') {
+        $dateFrom = date('Y-m-d');
+        $dateTo   = date('Y-m-d');
+        $branchId = $user['branch_id']; // employees can't cross branches
+    }
+
+    $stmt = $db->prepare("
+        SELECT s.id, s.total_amount, s.amount_tendered, s.change_amount,
+               s.sale_date, u.full_name AS cashier_name
+        FROM sales s
+        LEFT JOIN users u ON u.id = s.created_by
+        WHERE s.branch_id = ?
+          AND DATE(s.sale_date) BETWEEN ? AND ?
+        ORDER BY s.sale_date DESC
+        LIMIT 200
+    ");
+    $stmt->execute([$branchId, $dateFrom, $dateTo]);
+    $sales = $stmt->fetchAll();
+
+    // Totals for the filtered range
+    $totStmt = $db->prepare("
+        SELECT COUNT(*) AS count, COALESCE(SUM(total_amount),0) AS total
+        FROM sales
+        WHERE branch_id = ? AND DATE(sale_date) BETWEEN ? AND ?
+    ");
+    $totStmt->execute([$branchId, $dateFrom, $dateTo]);
+    $totals = $totStmt->fetch();
+
+    sendSuccess([
+        'sales'      => $sales,
+        'count'      => (int)$totals['count'],
+        'total'      => (float)$totals['total'],
+        'date_from'  => $dateFrom,
+        'date_to'    => $dateTo,
+        'branch_id'  => $branchId,
+    ]);
+}
+
+// ── POST: Create a new sale ────────────────────────────────
+if ($method === 'POST') {
+    $body = json_decode(file_get_contents('php://input'), true);
+
+    // Expected body:
+    // {
+    //   "items": [{ "product_id": 1, "quantity": 2 }, ...],
+    //   "amount_tendered": 2000
+    // }
+
+    $items          = $body['items']           ?? [];
+    $amountTendered = (float)($body['amount_tendered'] ?? 0);
+
+    if (empty($items))        sendError('Cart is empty. Add at least one item.');
+    if ($amountTendered <= 0) sendError('Amount tendered must be greater than zero.');
+
+    // ── Validate items + calculate total ──────────────────
+    $totalAmount = 0;
+    $lineItems   = [];
+
+    foreach ($items as $item) {
+        $productId = (int)($item['product_id'] ?? 0);
+        $quantity  = (int)($item['quantity']   ?? 0);
+
+        if ($productId <= 0 || $quantity <= 0) sendError('Invalid item in cart.');
+
+        // Fetch product — must be active and in same branch
+        $pStmt = $db->prepare("
+            SELECT id, product_name, price, stock
+            FROM products
+            WHERE id = ? AND branch_id = ? AND status = 'Active'
+        ");
+        $pStmt->execute([$productId, $user['branch_id']]);
+        $product = $pStmt->fetch();
+
+        if (!$product)              sendError("Product ID $productId not found or inactive.");
+        if ($product['stock'] < $quantity) {
+            sendError("Not enough stock for \"{$product['product_name']}\". Available: {$product['stock']}.");
+        }
+
+        $subtotal     = $product['price'] * $quantity;
+        $totalAmount += $subtotal;
+
+        $lineItems[] = [
+            'product_id' => $productId,
+            'quantity'   => $quantity,
+            'unit_price' => (float)$product['price'],
+            'subtotal'   => $subtotal,
+            'stock'      => $product['stock'],
+        ];
+    }
+
+    if ($amountTendered < $totalAmount) {
+        sendError(sprintf(
+            'Amount tendered (₱%.2f) is less than total (₱%.2f).',
+            $amountTendered, $totalAmount
+        ));
+    }
+
+    $changeAmount = $amountTendered - $totalAmount;
+
+    // ── Insert sale record + items in a transaction ────────
+    // A transaction means: either ALL inserts succeed or NONE do.
+    // Prevents a half-recorded sale if something crashes mid-way.
+    $db->beginTransaction();
+    try {
+        // Insert sale header
+        $saleStmt = $db->prepare("
+            INSERT INTO sales (branch_id, total_amount, amount_tendered, change_amount, created_by, sale_date)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        $saleStmt->execute([
+            $user['branch_id'],
+            $totalAmount,
+            $amountTendered,
+            $changeAmount,
+            $user['user_id'],
+        ]);
+        $saleId = (int)$db->lastInsertId();
+
+        // Insert each line item + deduct stock
+        $itemStmt  = $db->prepare("
+            INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stockStmt = $db->prepare("
+            UPDATE products SET stock = stock - ? WHERE id = ?
+        ");
+
+        foreach ($lineItems as $li) {
+            $itemStmt->execute([
+                $saleId, $li['product_id'],
+                $li['quantity'], $li['unit_price'], $li['subtotal'],
+            ]);
+            $stockStmt->execute([$li['quantity'], $li['product_id']]);
+        }
+
+        $db->commit();
+
+        sendSuccess([
+            'sale_id'       => $saleId,
+            'total_amount'  => $totalAmount,
+            'amount_tendered'=> $amountTendered,
+            'change_amount' => $changeAmount,
+        ], 201);
+
+    } catch (Exception $e) {
+        $db->rollBack();
+        sendError('Sale could not be saved. Please try again.', 500);
+    }
+}
+
+sendError('Method not allowed.', 405);

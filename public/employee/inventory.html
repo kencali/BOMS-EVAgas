@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stock View · BOMS Employee</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem;}
+
+    /* Search */
+    .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .search-wrap{position:relative;flex:1;min-width:180px;max-width:340px;}
+    .search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--mist);pointer-events:none;}
+    .search-input{width:100%;padding:.65rem .85rem .65rem 2.3rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.88rem;outline:none;transition:border-color .15s;}
+    .search-input::placeholder{color:var(--mist);opacity:.5;}
+    .search-input:focus{border-color:var(--flame);}
+    .count-label{font-size:.78rem;color:var(--mist);margin-left:auto;}
+
+    /* Stock cards grid */
+    .stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
+    .stock-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;transition:border-color .2s;}
+    .stock-card.low{border-left:3px solid var(--amber);}
+    .stock-card.out{border-left:3px solid var(--red);}
+    .stock-card.good{border-left:3px solid var(--green);}
+
+    .sc-name{font-size:.9rem;font-weight:600;color:var(--white);margin-bottom:.2rem;}
+    .sc-cat{font-size:.72rem;color:var(--mist);margin-bottom:.75rem;}
+    .sc-stock{font-size:1.6rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .sc-stock.good{color:var(--green);}
+    .sc-stock.low{color:var(--amber);}
+    .sc-stock.out{color:var(--red);}
+    .sc-unit{font-size:.72rem;color:var(--mist);font-family:'Sora',sans-serif;margin-left:.2rem;}
+    .sc-price{font-size:.8rem;color:var(--mist);margin-top:.4rem;font-family:'Space Mono',monospace;}
+
+    .empty-state{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--mist);}
+
+    /* Toast */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main-content">
+
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Stock Levels</h1>
+        <p class="page-subtitle">Current inventory — read only</p>
+      </div>
+      <button onclick="loadStock()"
+              style="padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;">
+        ↻ Refresh
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <!-- id="stockSearch" → read by filterStock() on input -->
+        <input type="text" id="stockSearch" class="search-input"
+               placeholder="Search products..." oninput="filterStock()"/>
+      </div>
+      <!-- id="stockCount" → written by loadStock() -->
+      <span class="count-label" id="stockCount"></span>
+    </div>
+
+    <!-- id="stockGrid" → written by renderGrid() -->
+    <div class="stock-grid" id="stockGrid">
+      <div class="empty-state">Loading...</div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar_employee.js"></script>
+<script src ="/BOMS-EVAgas/assets/js/employee/inventory.js"></script>
+
+</body>
+</html>

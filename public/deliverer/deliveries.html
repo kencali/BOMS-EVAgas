@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Deliveries · BOMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem;}
+
+    /* Status filter tabs */
+    .status-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .status-tab{padding:.45rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .status-tab:hover{border-color:var(--flame);color:var(--flame);}
+    .status-tab.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    /* Delivery cards (mobile-friendly card layout) */
+    .delivery-cards{display:flex;flex-direction:column;gap:.85rem;}
+
+    .delivery-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;transition:border-color .2s;}
+    .delivery-card:hover{border-color:rgba(255,75,31,.2);}
+    .delivery-card.status-pending  {border-left:3px solid var(--amber);}
+    .delivery-card.status-otw      {border-left:3px solid var(--blue);}
+    .delivery-card.status-delivered{border-left:3px solid var(--green);}
+    .delivery-card.status-cancelled{border-left:3px solid var(--mist);opacity:.6;}
+
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.85rem;}
+    .card-id{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--mist);}
+    .card-customer{font-size:1rem;font-weight:700;color:var(--white);margin-top:.15rem;}
+    .card-phone{font-size:.78rem;color:var(--mist);margin-top:.1rem;}
+
+    .status-badge{display:inline-block;padding:.25rem .65rem;border-radius:20px;font-size:.74rem;font-weight:600;flex-shrink:0;}
+    .status-pending  {background:rgba(255,159,10,.15);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .status-otw      {background:rgba(90,200,250,.15);color:var(--blue);border:1px solid rgba(90,200,250,.3);}
+    .status-delivered{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .status-cancelled{background:rgba(255,255,255,.05);color:var(--mist);border:1px solid var(--border);}
+
+    .card-info{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem;margin-bottom:1rem;font-size:.82rem;}
+    .info-item .info-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mist);margin-bottom:.15rem;}
+    .info-item .info-val{color:var(--cream);font-weight:500;}
+    .info-item.full{grid-column:1/-1;}
+
+    .card-notes{font-size:.78rem;color:var(--mist);padding:.65rem .85rem;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:1rem;}
+
+    /* Status update buttons */
+    .status-actions{display:flex;gap:.65rem;flex-wrap:wrap;}
+    .btn-status{padding:.55rem 1rem;border-radius:9px;border:1px solid;font-family:'Sora',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-status:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-otw{border-color:rgba(90,200,250,.35);color:var(--blue);background:rgba(90,200,250,.08);}
+    .btn-otw:hover:not(:disabled){background:rgba(90,200,250,.18);}
+    .btn-delivered{border-color:rgba(52,199,89,.35);color:var(--green);background:rgba(52,199,89,.08);}
+    .btn-delivered:hover:not(:disabled){background:rgba(52,199,89,.18);}
+
+    .empty-state{text-align:center;padding:4rem 1rem;color:var(--mist);}
+    .empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+
+    /* Toast */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main-content">
+
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">My Deliveries</h1>
+        <p class="page-subtitle" id="deliveryDate"></p>
+      </div>
+      <button onclick="loadDeliveries()" style="padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;">
+        ↻ Refresh
+      </button>
+    </div>
+
+    <!-- Status filter tabs -->
+    <!-- data-status values match ENUM values in DB exactly -->
+    <div class="status-tabs">
+      <button class="status-tab active" data-status="all"        onclick="filterByStatus('all')">All</button>
+      <button class="status-tab"        data-status="Pending"    onclick="filterByStatus('Pending')">🕐 Pending</button>
+      <button class="status-tab"        data-status="On the way" onclick="filterByStatus('On the way')">🚴 On the way</button>
+      <button class="status-tab"        data-status="Delivered"  onclick="filterByStatus('Delivered')">✅ Delivered</button>
+    </div>
+
+    <!-- Cards render here -->
+    <div class="delivery-cards" id="deliveryCards">
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div>Loading deliveries...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar_deliverer.js"></script>
+<script>
+// ── Guard: deliverer only ──────────────────────────────────
+Auth.guard(['deliverer']);
+
+// ── State ──────────────────────────────────────────────────
+let allDeliveries  = [];
+let activeFilter   = 'all';
+
+// ── Load deliveries ────────────────────────────────────────
+async function loadDeliveries() {
+    document.getElementById('deliveryCards').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">📦</div><div>Loading...</div></div>`;
+    try {
+        // API automatically filters to only this deliverer's assignments
+        // (enforced server-side in api/deliveries/index.php)
+        const data     = await Api.get('deliveries/index.php');
+        allDeliveries  = data.deliveries;
+        renderCards(allDeliveries);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Filter tabs ────────────────────────────────────────────
+function filterByStatus(status) {
+    activeFilter = status;
+    document.querySelectorAll('.status-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.status === status);
+    });
+    const filtered = status === 'all'
+        ? allDeliveries
+        : allDeliveries.filter(d => d.delivery_status === status);
+    renderCards(filtered);
+}
+
+// ── Render delivery cards ──────────────────────────────────
+function renderCards(deliveries) {
+    const container = document.getElementById('deliveryCards');
+
+    if (!deliveries.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div>No ${activeFilter === 'all' ? '' : activeFilter.toLowerCase()} deliveries.</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = deliveries.map(d => {
+        const statusClass = {
+            'Pending'    : 'status-pending',
+            'On the way' : 'status-otw',
+            'Delivered'  : 'status-delivered',
+            'Cancelled'  : 'status-cancelled',
+        }[d.delivery_status] ?? 'status-pending';
+
+        const cardClass = statusClass;
+
+        const dateStr = new Date(d.created_at).toLocaleDateString('en-PH', {
+            month: 'short', day: 'numeric', year: 'numeric'
+        });
+
+        // Which action buttons to show based on current status
+        const canMarkOtw       = d.delivery_status === 'Pending';
+        const canMarkDelivered = d.delivery_status === 'On the way';
+
+        const actionButtons = (canMarkOtw || canMarkDelivered) ? `
+            <div class="status-actions">
+                ${canMarkOtw ? `
+                    <button class="btn-status btn-otw"
+                            onclick="updateStatus(${d.id}, 'On the way', this)">
+                        🚴 Start Delivery
+                    </button>` : ''}
+                ${canMarkDelivered ? `
+                    <button class="btn-status btn-delivered"
+                            onclick="updateStatus(${d.id}, 'Delivered', this)">
+                        ✅ Mark Delivered
+                    </button>` : ''}
+            </div>` : '';
+
+        const notesHtml = d.notes
+            ? `<div class="card-notes">📝 ${escHtml(d.notes)}</div>` : '';
+
+        return `
+            <div class="delivery-card ${cardClass}" id="dcard-${d.id}">
+                <div class="card-top">
+                    <div>
+                        <div class="card-id">Delivery #${d.id} · ${dateStr}</div>
+                        <div class="card-customer">${escHtml(d.customer_name)}</div>
+                        <div class="card-phone">${escHtml(d.customer_phone || '—')}</div>
+                    </div>
+                    <span class="status-badge ${statusClass}">${escHtml(d.delivery_status)}</span>
+                </div>
+
+                <div class="card-info">
+                    <div class="info-item full">
+                        <div class="info-label">Address</div>
+                        <div class="info-val">${escHtml(d.customer_address)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Product</div>
+                        <div class="info-val">${escHtml(d.product_name)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Quantity</div>
+                        <div class="info-val">${d.quantity} unit${d.quantity !== 1 ? 's' : ''}</div>
+                    </div>
+                </div>
+
+                ${notesHtml}
+                ${actionButtons}
+            </div>`;
+    }).join('');
+}
+
+// ── Update delivery status ─────────────────────────────────
+// Uses: PUT /api/deliveries/index.php?id=N&action=status
+async function updateStatus(deliveryId, newStatus, buttonEl) {
+    buttonEl.disabled    = true;
+    buttonEl.textContent = 'Updating...';
+
+    try {
+        await Api.put(
+            `deliveries/index.php?id=${deliveryId}&action=status`,
+            { delivery_status: newStatus }
+        );
+
+        showToast(
+            newStatus === 'Delivered'
+                ? '✅ Marked as delivered!'
+                : '🚴 Delivery started!',
+            'success'
+        );
+
+        // Update local cache and re-render without a full reload
+        const idx = allDeliveries.findIndex(d => d.id === deliveryId);
+        if (idx !== -1) allDeliveries[idx].delivery_status = newStatus;
+        filterByStatus(activeFilter);
+
+    } catch (err) {
+        showToast(err.message, 'error');
+        buttonEl.disabled    = false;
+        buttonEl.textContent = newStatus === 'Delivered' ? '✅ Mark Delivered' : '🚴 Start Delivery';
+    }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(message, type = 'info') {
+    const el = document.getElementById('toast');
+    el.textContent = message;
+    el.className   = `toast show ${type}`;
+    setTimeout(() => el.classList.remove('show'), 4500);
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar();
+    document.getElementById('deliveryDate').textContent =
+        new Date().toLocaleDateString('en-PH', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    loadDeliveries();
+});
+</script>
+</body>
+</html>

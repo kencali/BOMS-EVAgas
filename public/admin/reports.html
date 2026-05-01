@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports · BOMS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="/BOMS-EVAgas/assets/js/chart.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+
+    /* ── Header ─────────────────────────────────────── */
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+
+    /* ── Branch switcher ─────────────────────────────── */
+    .branch-switcher{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .branch-view-badge{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;font-weight:600;}
+    .branch-view-badge.own{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .branch-view-badge.other{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .branch-btn{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .branch-btn:hover{border-color:var(--flame);color:var(--flame);}
+    .branch-btn.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    /* ── Date controls bar ───────────────────────────── */
+    .controls-bar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;min-height:40px;}
+    .date-input{padding:.6rem .9rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;outline:none;}
+    .date-input:focus{border-color:var(--flame);}
+    .btn-apply{padding:.6rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-apply:hover{border-color:var(--flame);color:var(--flame);}
+    .ctrl-label{font-size:.78rem;color:var(--mist);}
+
+    /* ── Tab navigation ──────────────────────────────── */
+    .tab-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:.75rem;}
+    .tab-btn{padding:.5rem 1rem;border-radius:8px;border:1px solid transparent;background:none;color:var(--mist);font-family:'Sora',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .tab-btn:hover{color:var(--cream);background:rgba(255,255,255,.04);}
+    .tab-btn.active{background:rgba(255,75,31,.1);border-color:rgba(255,75,31,.3);color:var(--flame);}
+
+    /* ── Shared report components ────────────────────── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;}
+    .kpi-label{font-size:.7rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+    .kpi-value{font-size:1.2rem;font-weight:700;font-family:'Space Mono',monospace;}
+    .kv-green{color:var(--green);}
+    .kv-red  {color:var(--red);}
+    .kv-amber{color:var(--amber);}
+    .kv-blue {color:var(--blue);}
+    .kv-white{color:var(--white);}
+
+    /* Split layout for chart + table */
+    .report-split{display:grid;grid-template-columns:1fr 340px;gap:1rem;align-items:start;}
+    .report-split.wide{grid-template-columns:1fr;}
+
+    /* Chart containers */
+    .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;}
+    .chart-card-title{font-size:.88rem;font-weight:600;color:var(--white);margin-bottom:1rem;}
+    .chart-wrap{position:relative;height:260px;}
+    .chart-wrap-sm{position:relative;height:220px;}
+
+    /* Data tables */
+    .table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .table-card-title{font-size:.88rem;font-weight:600;color:var(--white);padding:1rem 1.25rem;border-bottom:1px solid var(--border);}
+    .report-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .report-table thead th{padding:.75rem 1rem;background:rgba(255,255,255,.03);text-align:left;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .report-table tbody td{padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);}
+    .report-table tbody tr:last-child td{border-bottom:none;}
+    .report-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+    .table-empty{text-align:center;padding:2rem 1rem;color:var(--mist);}
+    .mono{font-family:'Space Mono',monospace;}
+
+    /* Stock badges in inventory tab */
+    .stock-badge{display:inline-block;padding:.22rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;font-family:'Space Mono',monospace;}
+    .stock-out{background:rgba(255,59,48,.12);color:var(--red);border:1px solid rgba(255,59,48,.25);}
+    .stock-low{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.25);}
+    .stock-ok {background:rgba(52,199,89,.1);color:var(--green);border:1px solid rgba(52,199,89,.2);}
+
+    /* ── Toast ───────────────────────────────────────── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+
+    @media(max-width:900px){.report-split{grid-template-columns:1fr;}}
+    @media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Analytics and summaries for EVA Gas Trading</p>
+      </div>
+      <div class="branch-switcher">
+        <!-- id="viewingBadge" → updated by switchBranch() -->
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- Date controls bar (shown/hidden per tab by switchTab()) -->
+    <!--
+      id="dateRangeControls" → display toggled by switchTab() for summary|sales|expenses
+      id="periodControls"    → display toggled by switchTab() for payroll
+      id="dateFrom"          → read by buildParams() in reports.js
+      id="dateTo"            → read by buildParams() in reports.js
+      id="periodStart"       → read by buildParams() for payroll
+      id="periodEnd"         → read by buildParams() for payroll
+    -->
+    <div class="controls-bar">
+      <div id="dateRangeControls" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <span class="ctrl-label">From</span>
+        <input type="date" id="dateFrom" class="date-input"/>
+        <span class="ctrl-label">To</span>
+        <input type="date" id="dateTo"   class="date-input"/>
+        <button class="btn-apply" onclick="loadActiveTab()">↻ Apply</button>
+      </div>
+      <div id="periodControls" style="display:none;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <span class="ctrl-label">Period From</span>
+        <input type="date" id="periodStart" class="date-input"/>
+        <span class="ctrl-label">To</span>
+        <input type="date" id="periodEnd"   class="date-input"/>
+        <button class="btn-apply" onclick="loadActiveTab()">↻ Apply</button>
+      </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <!--
+      data-tab attributes match the tab names used in switchTab() and buildParams():
+      summary | sales | expenses | payroll | inventory
+    -->
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="summary"   onclick="switchTab('summary')">📊 Overview</button>
+      <button class="tab-btn"        data-tab="sales"     onclick="switchTab('sales')">₱ Sales</button>
+      <button class="tab-btn"        data-tab="expenses"  onclick="switchTab('expenses')">⊖ Expenses</button>
+      <button class="tab-btn"        data-tab="payroll"   onclick="switchTab('payroll')">⊜ Payroll</button>
+      <button class="tab-btn"        data-tab="inventory" onclick="switchTab('inventory')">⊟ Inventory</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- TAB PANEL: SUMMARY                                 -->
+    <!-- data-panel="summary" → shown/hidden by switchTab() -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div class="tab-panel" data-panel="summary">
+
+      <!-- KPI cards -->
+      <!--
+        id="sumRevenue"    → written by loadSummary() from data.revenue
+        id="sumExpenses"   → written by loadSummary() from data.expenses
+        id="sumNetIncome"  → written by loadSummary() from data.net_income
+        id="sumEmployees"  → written by loadSummary() from data.active_employees
+        id="sumDeliveries" → written by loadSummary() from data.pending_deliveries
+        id="sumLowStock"   → written by loadSummary() from data.low_stock
+      -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Revenue</div>
+          <div class="kpi-value kv-green" id="sumRevenue">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Expenses</div>
+          <div class="kpi-value kv-red" id="sumExpenses">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Net Income</div>
+          <div class="kpi-value kv-green" id="sumNetIncome">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Employees</div>
+          <div class="kpi-value kv-white" id="sumEmployees">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Pending Deliveries</div>
+          <div class="kpi-value kv-amber" id="sumDeliveries">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Low Stock Items</div>
+          <div class="kpi-value kv-red" id="sumLowStock">—</div>
+        </div>
+      </div>
+
+      <!-- Summary bar chart -->
+      <div class="chart-card">
+        <div class="chart-card-title">Monthly Revenue (Last 6 Months)</div>
+        <div class="chart-wrap">
+          <!-- id="summaryChart" → Chart.js instance created by loadSummary() -->
+          <canvas id="summaryChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- TAB PANEL: SALES                                   -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div class="tab-panel" data-panel="sales" style="display:none;">
+      <!--
+        id="salesTotalRevenue" → written by loadSalesReport()
+        id="salesTotalTx"      → written by loadSalesReport()
+        id="salesAvg"          → written by loadSalesReport()
+        id="salesHighest"      → written by loadSalesReport()
+      -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value kv-green" id="salesTotalRevenue">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Transactions</div>
+          <div class="kpi-value kv-white" id="salesTotalTx">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg. per Sale</div>
+          <div class="kpi-value kv-amber" id="salesAvg">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Highest Sale</div>
+          <div class="kpi-value kv-blue" id="salesHighest">—</div>
+        </div>
+      </div>
+
+      <div class="report-split">
+        <div class="chart-card">
+          <div class="chart-card-title">Monthly Sales Trend</div>
+          <div class="chart-wrap">
+            <!-- id="salesChart" → Chart.js instance created by loadSalesReport() -->
+            <canvas id="salesChart"></canvas>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-title">Top 5 Products</div>
+          <table class="report-table">
+            <thead><tr><th>#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+            <!-- id="salesTopBody" → written by loadSalesReport() -->
+            <tbody id="salesTopBody">
+              <tr><td colspan="4" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- TAB PANEL: EXPENSES                                -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div class="tab-panel" data-panel="expenses" style="display:none;">
+      <!--
+        id="expTotal"   → written by loadExpensesReport()
+        id="expEntries" → written by loadExpensesReport()
+        id="expAvg"     → written by loadExpensesReport()
+      -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Expenses</div>
+          <div class="kpi-value kv-red" id="expTotal">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Entries</div>
+          <div class="kpi-value kv-white" id="expEntries">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg. Expense</div>
+          <div class="kpi-value kv-amber" id="expAvg">—</div>
+        </div>
+      </div>
+
+      <div class="report-split">
+        <div class="chart-card">
+          <div class="chart-card-title">Expenses by Category</div>
+          <div class="chart-wrap-sm">
+            <!-- id="expChart" → doughnut Chart.js instance by loadExpensesReport() -->
+            <canvas id="expChart"></canvas>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-title">Category Breakdown</div>
+          <table class="report-table">
+            <thead><tr><th>Category</th><th>Entries</th><th>Total</th></tr></thead>
+            <!-- id="expCategoryBody" → written by loadExpensesReport() -->
+            <tbody id="expCategoryBody">
+              <tr><td colspan="3" class="table-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- TAB PANEL: PAYROLL                                 -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div class="tab-panel" data-panel="payroll" style="display:none;">
+      <!--
+        id="payTotalGross" → written by loadPayrollReport()
+        id="payTotalDed"   → written by loadPayrollReport()
+        id="payTotalNet"   → written by loadPayrollReport()
+        id="payCount"      → written by loadPayrollReport()
+      -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Gross Pay</div>
+          <div class="kpi-value kv-amber" id="payTotalGross">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Deductions</div>
+          <div class="kpi-value kv-red" id="payTotalDed">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Net Pay</div>
+          <div class="kpi-value kv-green" id="payTotalNet">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Employees Paid</div>
+          <div class="kpi-value kv-white" id="payCount">—</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-title">Employee Payroll Breakdown</div>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Days</th>
+              <th>Rate/Day</th>
+              <th>Gross</th>
+              <th>Deductions</th>
+              <th>Net Pay</th>
+            </tr>
+          </thead>
+          <!-- id="payrollBody" → written by loadPayrollReport() -->
+          <tbody id="payrollBody">
+            <tr><td colspan="6" class="table-empty">Select a period and click Apply.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- TAB PANEL: INVENTORY                               -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div class="tab-panel" data-panel="inventory" style="display:none;">
+      <!--
+        id="invTotal" → written by loadInventoryReport() from summary.total_products
+        id="invOut"   → written by loadInventoryReport() from summary.out_of_stock
+        id="invLow"   → written by loadInventoryReport() from summary.low_stock
+        id="invOk"    → written by loadInventoryReport() from summary.ok_stock
+        id="invValue" → written by loadInventoryReport() from summary.stock_value
+      -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Products</div>
+          <div class="kpi-value kv-white" id="invTotal">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Out of Stock</div>
+          <div class="kpi-value kv-red" id="invOut">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Low Stock</div>
+          <div class="kpi-value kv-amber" id="invLow">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Sufficient</div>
+          <div class="kpi-value kv-green" id="invOk">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Stock Value</div>
+          <div class="kpi-value kv-blue" id="invValue">—</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-title">All Products — Stock Levels</div>
+        <table class="report-table">
+          <thead>
+            <tr><th>Product</th><th>Category</th><th>Stock</th><th>Stock Value</th></tr>
+          </thead>
+          <!-- id="inventoryBody" → written by loadInventoryReport() -->
+          <tbody id="inventoryBody">
+            <tr><td colspan="4" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast — id="toast" → written by showToast() in reports.js -->
+<div class="toast" id="toast"></div>
+
+<!-- Script load order: api → auth → sidebar → page logic -->
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/reports.js"></script>
+</body>
+</html>

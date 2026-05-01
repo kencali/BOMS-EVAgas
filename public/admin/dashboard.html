@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · BOMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- Chart.js from CDN -->
+  <script src="/BOMS-EVAgas/assets/js/chart.js"></script>
+
+  <style>
+    /* ── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --flame:   #FF4B1F;
+      --amber:   #FF9F0A;
+      --ink:     #0F0E0C;
+      --surface: #181714;
+      --card:    #1E1C19;
+      --border:  rgba(255,255,255,.07);
+      --mist:    #9E9B92;
+      --cream:   #F5F0E8;
+      --white:   #FFFFFF;
+      --green:   #34C759;
+      --red:     #FF3B30;
+      --blue:    #5AC8FA;
+      --amber-c: #FF9F0A;
+    }
+
+    html, body { height: 100%; font-family: 'Sora', sans-serif; background: var(--ink); color: var(--cream); }
+
+    /* ── Page header ────────────────────────────────── */
+    .page-title   { font-size: 1.55rem; font-weight: 700; color: var(--white); }
+    .page-subtitle { font-size: .82rem; color: var(--mist); margin-top: .25rem; }
+
+    /* ── Branch switcher ─────────────────────────────── */
+    .header-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .branch-switcher {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .branch-view-badge {
+        font-size: .72rem;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: .3rem .75rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    .branch-view-badge.own   { background: rgba(52,199,89,.12);  color: var(--green); border: 1px solid rgba(52,199,89,.25); }
+    .branch-view-badge.other { background: rgba(255,159,10,.12); color: var(--amber); border: 1px solid rgba(255,159,10,.3); }
+
+    .branch-btn {
+        padding: .4rem .9rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--mist);
+        font-family: 'Sora', sans-serif;
+        font-size: .78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+    }
+    .branch-btn:hover  { border-color: var(--flame); color: var(--flame); }
+    .branch-btn.active { background: rgba(255,75,31,.1); border-color: var(--flame); color: var(--flame); }
+
+    /* ── Stat cards grid ─────────────────────────────── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        transition: border-color .2s;
+    }
+    .stat-card:hover { border-color: rgba(255,75,31,.25); }
+
+    .stat-icon {
+        font-size: 1.1rem;
+        width: 36px; height: 36px;
+        background: rgba(255,255,255,.05);
+        border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: .3rem;
+    }
+
+    .stat-label { font-size: .72rem; color: var(--mist); text-transform: uppercase; letter-spacing: .07em; }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: 'Space Mono', monospace;
+        letter-spacing: -.02em;
+        line-height: 1.1;
+    }
+    .color-green { color: var(--green); }
+    .color-red   { color: var(--red);   }
+    .color-blue  { color: var(--blue);  }
+    .color-amber { color: var(--amber); }
+    .color-mist  { color: var(--mist);  }
+    .color-white { color: var(--white); }
+
+    /* ── Bottom row: Chart + Low Stock ──────────────── */
+    .bottom-row {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 1rem;
+    }
+
+    /* ── Card base ───────────────────────────────────── */
+    .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.4rem;
+    }
+
+    .card-title {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--white);
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .card-title span { font-size: .72rem; color: var(--mist); font-weight: 400; }
+
+    /* Chart container */
+    .chart-wrap {
+        position: relative;
+        height: 280px;
+    }
+
+    #chartEmpty {
+        display: none;
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: var(--mist);
+        font-size: .85rem;
+    }
+
+    /* Low stock table */
+    .low-stock-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .83rem;
+    }
+    .low-stock-table th {
+        text-align: left;
+        padding: .5rem .75rem;
+        color: var(--mist);
+        font-size: .7rem;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        border-bottom: 1px solid var(--border);
+        font-weight: 500;
+    }
+    .low-stock-table td {
+        padding: .65rem .75rem;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        color: var(--cream);
+    }
+    .stock-qty { font-family: 'Space Mono', monospace; font-size: .8rem; }
+    .stock-qty.warning  { color: var(--amber); }
+    .stock-qty.critical { color: var(--red);   }
+
+    /* ── Toast notification ──────────────────────────── */
+    .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: .8rem 1.2rem;
+        font-size: .85rem;
+        color: var(--cream);
+        transform: translateY(6px);
+        opacity: 0;
+        pointer-events: none;
+        transition: all .25s;
+        z-index: 999;
+    }
+    .toast.show   { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast.error  { border-color: rgba(255,59,48,.4); color: #FF6B61; }
+    .toast.success{ border-color: rgba(52,199,89,.3);  color: var(--green); }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 960px) {
+        .bottom-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Layout shell ───────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Sidebar renders here via sidebar.js -->
+  <div id="sidebar"></div>
+
+  <!-- ── Main Content ─────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Page header + branch switcher -->
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Business overview and analytics</p>
+      </div>
+
+      <!-- Branch A / Branch B toggle -->
+      <div class="branch-switcher">
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- ── Stat Cards ──────────────────────────────────────── -->
+    <div class="stats-grid">
+
+      <div class="stat-card" id="stat-sales">
+        <div class="stat-icon">₱</div>
+        <div class="stat-label">Total Sales</div>
+        <div class="stat-value color-green">---</div>
+      </div>
+
+      <div class="stat-card" id="stat-expenses">
+        <div class="stat-icon">⊖</div>
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value color-red">---</div>
+      </div>
+
+      <div class="stat-card" id="stat-income">
+        <div class="stat-icon">↑</div>
+        <div class="stat-label">Net Income</div>
+        <div class="stat-value color-green">---</div>
+      </div>
+
+      <div class="stat-card" id="stat-products">
+        <div class="stat-icon">⊞</div>
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value color-blue">---</div>
+      </div>
+
+      <div class="stat-card" id="stat-employees">
+        <div class="stat-icon">⊛</div>
+        <div class="stat-label">Active Employees</div>
+        <div class="stat-value color-amber">---</div>
+      </div>
+
+      <div class="stat-card" id="stat-deliveries">
+        <div class="stat-icon">⊕</div>
+        <div class="stat-label">Pending Deliveries</div>
+        <div class="stat-value color-red">---</div>
+      </div>
+
+    </div><!-- /stats-grid -->
+
+    <!-- ── Bottom row: Chart + Low Stock ──────────────────── -->
+    <div class="bottom-row">
+
+      <!-- Monthly Sales Chart -->
+      <div class="card">
+        <div class="card-title">
+          Monthly Sales Overview
+          <span>Last 12 months</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="salesChart"></canvas>
+          <div id="chartEmpty">No sales data yet.</div>
+        </div>
+      </div>
+
+      <!-- Low Stock Warning -->
+      <div class="card">
+        <div class="card-title">
+          Low Stock Alert
+          <span>≤ 5 units</span>
+        </div>
+        <table class="low-stock-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+          <tbody id="lowStockBody">
+            <tr><td colspan="2" style="text-align:center;color:#9E9B92;padding:1.5rem;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /bottom-row -->
+
+  </main>
+</div>
+
+<!-- Toast notification (used by showToast()) -->
+<div class="toast" id="toast"></div>
+
+<!-- Script load order matters: api → auth → sidebar → page logic -->
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/dashboard.js"></script>
+
+</body>
+</html>

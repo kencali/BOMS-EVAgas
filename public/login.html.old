@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BOMS · EVA Gas Trading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ───────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --flame:    #FF4B1F;
+      --amber:    #FF9F0A;
+      --ink:      #0F0E0C;
+      --charcoal: #1C1B18;
+      --ash:      #2E2D29;
+      --mist:     #9E9B92;
+      --cream:    #F5F0E8;
+      --white:    #FFFFFF;
+      --error:    #FF3B30;
+      --success:  #34C759;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Sora', sans-serif;
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    /* ── Background flame texture ───────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 10% 90%, rgba(255,75,31,.22) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 60% at 90% 10%, rgba(255,159,10,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 40% at 50% 110%, rgba(255,75,31,.08) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ─────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Left panel — branding ───────────────────── */
+    .brand-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem;
+      border-right: 1px solid rgba(255,255,255,.06);
+    }
+
+    .brand-panel .tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--flame);
+      margin-bottom: 2rem;
+    }
+
+    .brand-panel h1 {
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+
+    .brand-panel h1 span {
+      display: block;
+      background: linear-gradient(135deg, var(--flame), var(--amber));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-panel p {
+      font-size: .95rem;
+      line-height: 1.7;
+      color: var(--mist);
+      max-width: 34ch;
+      margin-bottom: 3rem;
+    }
+
+    /* ── Roles badge list ────────────────────────── */
+    .roles {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .role-badge {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-size: .82rem;
+      color: var(--mist);
+    }
+
+    .role-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ash);
+      border: 2px solid var(--mist);
+      flex-shrink: 0;
+    }
+
+    .role-badge.admin   .dot { background: var(--flame); border-color: var(--flame); }
+    .role-badge.employee .dot { background: var(--amber); border-color: var(--amber); }
+    .role-badge.deliver  .dot { background: #5AC8FA;   border-color: #5AC8FA; }
+
+    /* ── Right panel — login form ────────────────── */
+    .form-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .form-card .hello {
+      font-family: 'Space Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .2em;
+      color: var(--mist);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-card h2 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      color: var(--white);
+    }
+
+    /* ── Form fields ─────────────────────────────── */
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--mist);
+      margin-bottom: .5rem;
+    }
+
+    .field input {
+      width: 100%;
+      padding: .85rem 1rem;
+      background: var(--ash);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      color: var(--cream);
+      font-family: 'Sora', sans-serif;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field input::placeholder { color: var(--mist); opacity: .5; }
+
+    .field input:focus {
+      border-color: var(--flame);
+      box-shadow: 0 0 0 3px rgba(255,75,31,.15);
+    }
+
+    /* ── Error message ───────────────────────────── */
+    .error-msg {
+      display: none;
+      background: rgba(255,59,48,.12);
+      border: 1px solid rgba(255,59,48,.3);
+      color: #FF6B61;
+      border-radius: 8px;
+      padding: .7rem 1rem;
+      font-size: .83rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .error-msg.show { display: block; }
+
+    /* ── Submit button ───────────────────────────── */
+    .btn-login {
+      width: 100%;
+      padding: .9rem;
+      background: linear-gradient(135deg, var(--flame), #FF6B35);
+      border: none;
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'Sora', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+      margin-top: .5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-login:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+    .btn-login:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-login:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .btn-login .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-login.loading .label { display: none; }
+    .btn-login.loading .spinner { display: block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer note ─────────────────────────────── */
+    .form-footer {
+      margin-top: 2rem;
+      font-size: .75rem;
+      color: var(--mist);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Responsive: stack on mobile ────────────── */
+    @media (max-width: 768px) {
+      .page { grid-template-columns: 1fr; }
+      .brand-panel { display: none; } /* hide branding on small screens */
+      .form-panel { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- LEFT: Branding -->
+  <div class="brand-panel">
+    <span class="tagline">Business Operations</span>
+    <h1>
+      EVA Gas
+      <span>Trading</span>
+    </h1>
+    <p>
+      Centralized management for sales, inventory, deliveries,
+      and payroll — both branches, one system.
+    </p>
+
+    <div class="roles">
+      <div class="role-badge admin">
+        <span class="dot"></span>
+        Admin — full access, reports, payroll, settings
+      </div>
+      <div class="role-badge employee">
+        <span class="dot"></span>
+        Employee — POS, orders, inventory view
+      </div>
+      <div class="role-badge deliver">
+        <span class="dot"></span>
+        Deliverer — assigned routes and delivery status
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Login Form -->
+  <div class="form-panel">
+    <div class="form-card">
+
+      <p class="hello">Welcome back</p>
+      <h2>Sign in to BOMS</h2>
+
+      <!-- Error message box (hidden by default) -->
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- Login form (no action — JS handles the submit) -->
+      <div class="field">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter your username"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="handleLogin()">
+        <span class="label">Sign In</span>
+        <span class="spinner"></span>
+      </button>
+
+      <p class="form-footer">
+        EVA Gas Trading · BOMS v1.0<br />
+        Malilipot, Albay
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<!-- Scripts: api.js must come before auth.js -->
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/login.js"></script>
+
+</body>
+</html>

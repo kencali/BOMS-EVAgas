@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# THIS IS THE CRITICAL LINE — fixes the 401 token issue on Apache/XAMPP
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# Allow direct file access (HTML, CSS, JS, PHP files)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]

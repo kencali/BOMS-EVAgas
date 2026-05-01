@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · BOMS Employee</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;--border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;--white:#fff;--green:#34C759;--red:#FF3B30;}
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+    .header-row{margin-bottom:1.75rem;}
+
+    /* Quick action cards */
+    .quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.75rem;}
+    .quick-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem 1.4rem;display:flex;flex-direction:column;align-items:flex-start;gap:.75rem;text-decoration:none;color:var(--cream);transition:border-color .2s,transform .15s;}
+    .quick-card:hover{border-color:var(--flame);transform:translateY(-2px);}
+    .quick-card .q-icon{font-size:1.8rem;}
+    .quick-card .q-label{font-size:.95rem;font-weight:600;color:var(--white);}
+    .quick-card .q-desc{font-size:.78rem;color:var(--mist);}
+    .quick-card.primary{background:linear-gradient(135deg,rgba(255,75,31,.15),rgba(255,75,31,.05));border-color:rgba(255,75,31,.3);}
+
+    /* Today's summary */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.75rem;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;}
+    .stat-label{font-size:.72rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem;}
+    .stat-value{font-size:1.5rem;font-weight:700;font-family:'Space Mono',monospace;color:var(--white);}
+    .stat-value.green{color:var(--green);}
+
+    /* Recent sales mini table */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;}
+    .card-title{font-size:.9rem;font-weight:600;color:var(--white);margin-bottom:1rem;}
+    .mini-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .mini-table th{text-align:left;padding:.5rem .75rem;color:var(--mist);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);font-weight:500;}
+    .mini-table td{padding:.65rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--cream);}
+    .mini-table tr:last-child td{border-bottom:none;}
+    .mono{font-family:'Space Mono',monospace;}
+    .empty-row{text-align:center;color:var(--mist);padding:1.5rem!important;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+  <main class="main-content">
+
+    <div class="header-row">
+      <h1 class="page-title" id="greeting">Good morning 👋</h1>
+      <p class="page-subtitle" id="dateLabel"></p>
+    </div>
+
+    <!-- Today's stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Sales Today</div>
+        <div class="stat-value green" id="todaySales">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Transactions</div>
+        <div class="stat-value" id="todayCount">—</div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-grid">
+      <a href="/BOMS-EVAgas/public/employee/pos.html" class="quick-card primary">
+        <span class="q-icon">🧾</span>
+        <span class="q-label">New Sale</span>
+        <span class="q-desc">Open the Point of Sale</span>
+      </a>
+      <a href="/BOMS-EVAgas/public/employee/orders.html" class="quick-card">
+        <span class="q-icon">📋</span>
+        <span class="q-label">Today's Sales</span>
+        <span class="q-desc">View sales you've made</span>
+      </a>
+      <a href="/BOMS-EVAgas/public/employee/inventory.html" class="quick-card">
+        <span class="q-icon">📦</span>
+        <span class="q-label">Stock Levels</span>
+        <span class="q-desc">Check current inventory</span>
+      </a>
+    </div>
+
+    <!-- Recent sales -->
+    <div class="card">
+      <div class="card-title">Recent Sales Today</div>
+      <table class="mini-table">
+        <thead><tr><th>Time</th><th>Total</th><th>Tendered</th><th>Change</th></tr></thead>
+        <tbody id="recentSalesBody">
+          <tr><td class="empty-row" colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar_employee.js"></script>
+<script src="/BOMS-EVAgas/assets/js/employee/dashboard.js"></script>
+
+</body>
+</html>

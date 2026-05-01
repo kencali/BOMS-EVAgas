@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sales · BOMS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;--border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;--white:#fff;--green:#34C759;--red:#FF3B30;}
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem;}
+
+    /* Branch + Summary */
+    .branch-switcher{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .branch-view-badge{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;font-weight:600;}
+    .branch-view-badge.own{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .branch-view-badge.other{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .branch-btn{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .branch-btn:hover{border-color:var(--flame);color:var(--flame);}
+    .branch-btn.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    .summary-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;}
+    .stat-label{font-size:.7rem;color:var(--mist);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;}
+    .stat-value{font-size:1.2rem;font-weight:700;font-family:'Space Mono',monospace;color:var(--green);}
+
+    /* Filters */
+    .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .date-input{padding:.6rem .9rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;outline:none;cursor:pointer;}
+    .date-input:focus{border-color:var(--flame);}
+    .btn-filter{padding:.6rem 1.1rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;}
+
+    /* Table */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .sales-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+    .sales-table thead th{padding:.85rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .sales-table tbody td{padding:.9rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+    .sales-table tbody tr:last-child td{border-bottom:none;}
+    .sales-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+    .mono{font-family:'Space Mono',monospace;}
+    .table-empty{text-align:center;padding:3rem 1rem;color:var(--mist);}
+    .btn-view{padding:.3rem .75rem;border-radius:7px;border:1px solid rgba(90,200,250,.3);color:#5AC8FA;background:rgba(90,200,250,.08);font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;}
+    .btn-view:hover{background:rgba(90,200,250,.18);}
+
+    /* Sale detail modal */
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;}
+    .modal-backdrop.open{display:flex;}
+    .modal-box{background:#1E1C19;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+    .modal-title{font-size:1rem;font-weight:700;color:var(--white);}
+    .modal-close{background:none;border:none;color:var(--mist);font-size:1.2rem;cursor:pointer;}
+    .detail-row{display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:.4rem;}
+    .detail-row .lbl{color:var(--mist);}
+    .detail-row .val{font-family:'Space Mono',monospace;color:var(--cream);}
+    .detail-divider{border:none;border-top:1px solid var(--border);margin:.75rem 0;}
+    .item-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .item-row:last-child{border-bottom:none;}
+
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+  <main class="main-content">
+
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Sales History</h1>
+        <p class="page-subtitle">All sales transactions</p>
+      </div>
+      <div class="branch-switcher">
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-row">
+      <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value" id="sumRevenue">—</div></div>
+      <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value" id="sumCount" style="color:var(--white)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avg. Sale</div><div class="stat-value" id="sumAvg" style="color:var(--amber)">—</div></div>
+    </div>
+
+    <!-- Date filter -->
+    <div class="toolbar">
+      <label style="font-size:.78rem;color:var(--mist);">From</label>
+      <input type="date" id="dateFrom" class="date-input" />
+      <label style="font-size:.78rem;color:var(--mist);">To</label>
+      <input type="date" id="dateTo"   class="date-input" />
+      <button class="btn-filter" onclick="loadSales()">Apply</button>
+      <span style="font-size:.78rem;color:var(--mist);margin-left:auto;" id="salesCount"></span>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <table class="sales-table">
+        <thead>
+          <tr>
+            <th>Sale #</th>
+            <th>Date & Time</th>
+            <th>Cashier</th>
+            <th>Total</th>
+            <th>Tendered</th>
+            <th>Change</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="salesTableBody">
+          <tr><td colspan="7" class="table-empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- Sale detail modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title" id="detailTitle">Sale Detail</h3>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/sales.js"></script>
+</body>
+</html>

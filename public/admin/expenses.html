@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expenses · BOMS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --flame:#FF4B1F;--amber:#FF9F0A;--ink:#0F0E0C;--card:#1E1C19;
+      --border:rgba(255,255,255,.07);--mist:#9E9B92;--cream:#F5F0E8;
+      --white:#fff;--green:#34C759;--red:#FF3B30;--blue:#5AC8FA;
+    }
+    html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--cream);}
+
+    .header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+    .page-title{font-size:1.55rem;font-weight:700;color:var(--white);}
+    .page-subtitle{font-size:.82rem;color:var(--mist);margin-top:.25rem;}
+
+    .branch-switcher{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+    .branch-view-badge{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;font-weight:600;}
+    .branch-view-badge.own{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .branch-view-badge.other{background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.3);}
+    .branch-btn{padding:.4rem .9rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--mist);font-family:'Sora',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .branch-btn:hover{border-color:var(--flame);color:var(--flame);}
+    .branch-btn.active{background:rgba(255,75,31,.1);border-color:var(--flame);color:var(--flame);}
+
+    /* ── Main split layout: table + breakdown ────────── */
+    .content-split{display:grid;grid-template-columns:1fr 280px;gap:1rem;align-items:start;}
+
+    /* ── Toolbar ─────────────────────────────────────── */
+    .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .date-input{padding:.6rem .9rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.85rem;outline:none;}
+    .date-input:focus{border-color:var(--flame);}
+    .btn-filter{padding:.6rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-filter:hover{border-color:var(--flame);color:var(--flame);}
+    .total-label{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--mist);margin-left:auto;}
+    .total-label strong{font-family:'Space Mono',monospace;color:var(--red);font-size:.95rem;}
+    .count-label{font-size:.78rem;color:var(--mist);}
+    .btn-add{display:flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:10px;color:var(--white);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+    .btn-add:hover{opacity:.85;}
+
+    /* ── Table ───────────────────────────────────────── */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .expense-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+    .expense-table thead th{padding:.85rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);}
+    .expense-table tbody td{padding:.9rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+    .expense-table tbody tr:last-child td{border-bottom:none;}
+    .expense-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+    .col-actions{width:140px;}
+    .mono{font-family:'Space Mono',monospace;}
+    .red{color:var(--red);}
+    .exp-desc{max-width:260px;color:var(--cream);}
+    .table-empty{text-align:center;padding:3rem 1rem;color:var(--mist);}
+
+    /* Category badges */
+    .cat-badge{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;}
+    .cat-utilities  {background:rgba(90,200,250,.12);color:var(--blue);border:1px solid rgba(90,200,250,.25);}
+    .cat-supplies   {background:rgba(255,159,10,.12);color:var(--amber);border:1px solid rgba(255,159,10,.25);}
+    .cat-maintenance{background:rgba(255,75,31,.12);color:var(--flame);border:1px solid rgba(255,75,31,.25);}
+    .cat-salary     {background:rgba(52,199,89,.1);color:var(--green);border:1px solid rgba(52,199,89,.25);}
+    .cat-other      {background:rgba(255,255,255,.06);color:var(--mist);border:1px solid var(--border);}
+
+    .btn-action{padding:.32rem .75rem;border-radius:7px;border:1px solid;font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;margin-right:.35rem;}
+    .btn-action.edit{border-color:rgba(90,200,250,.3);color:var(--blue);background:rgba(90,200,250,.08);}
+    .btn-action.edit:hover{background:rgba(90,200,250,.18);}
+    .btn-action.del{border-color:rgba(255,59,48,.3);color:var(--red);background:rgba(255,59,48,.08);}
+    .btn-action.del:hover{background:rgba(255,59,48,.18);}
+
+    /* ── Category breakdown card ─────────────────────── */
+    .breakdown-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;}
+    .breakdown-title{font-size:.88rem;font-weight:600;color:var(--white);margin-bottom:1rem;}
+    .cat-row{margin-bottom:1rem;}
+    .cat-row:last-child{margin-bottom:0;}
+    .cat-row-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem;}
+    .cat-amount{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--red);}
+    .cat-bar-track{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-bottom:.2rem;}
+    .cat-bar-fill{height:4px;background:linear-gradient(90deg,var(--flame),var(--amber));border-radius:2px;transition:width .4s ease;}
+    .cat-pct{font-size:.68rem;color:var(--mist);text-align:right;}
+
+    /* ── Modals ──────────────────────────────────────── */
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;}
+    .modal-backdrop.open{display:flex;}
+    .modal-box{background:#1E1C19;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+    .modal-title{font-size:1.1rem;font-weight:700;color:var(--white);}
+    .modal-close{background:none;border:none;color:var(--mist);font-size:1.2rem;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:var(--cream);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-field{margin-bottom:1rem;}
+    .form-field label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);margin-bottom:.45rem;}
+    .field-input{width:100%;padding:.75rem .9rem;background:#141310;border:1px solid var(--border);border-radius:9px;color:var(--cream);font-family:'Sora',sans-serif;font-size:.88rem;outline:none;transition:border-color .15s;}
+    .field-input:focus{border-color:var(--flame);}
+    .field-input.error{border-color:var(--red);}
+    .field-error{font-size:.73rem;color:var(--red);margin-top:.35rem;min-height:1em;}
+    .modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;}
+    .btn-cancel-modal{padding:.7rem 1.3rem;background:none;border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.88rem;cursor:pointer;transition:all .15s;}
+    .btn-cancel-modal:hover{border-color:var(--mist);color:var(--cream);}
+    .btn-submit{padding:.7rem 1.5rem;background:linear-gradient(135deg,var(--flame),#FF6B35);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+    .modal-box.small{max-width:380px;text-align:center;}
+    .confirm-icon{font-size:2.5rem;margin-bottom:.75rem;}
+    .confirm-msg{font-size:.9rem;color:var(--cream);line-height:1.6;margin-bottom:1.5rem;}
+    .confirm-msg strong{color:var(--white);}
+    .btn-confirm-del{padding:.7rem 1.5rem;background:var(--red);border:none;border-radius:9px;color:var(--white);font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;}
+    .btn-confirm-del:disabled{opacity:.5;cursor:not-allowed;}
+
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.2rem;font-size:.85rem;color:var(--cream);transform:translateY(6px);opacity:0;pointer-events:none;transition:all .25s;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
+    .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
+
+    @media(max-width:900px){.content-split{grid-template-columns:1fr;}}
+    @media(max-width:640px){.form-row{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+  <main class="main-content">
+
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">Expenses</h1>
+        <p class="page-subtitle">Track and manage operating costs</p>
+      </div>
+      <div class="branch-switcher">
+        <span id="viewingBadge" class="branch-view-badge own">Branch A (your branch)</span>
+        <button class="branch-btn active" data-branch="1" onclick="switchBranch(1)">Branch A</button>
+        <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <label style="font-size:.78rem;color:var(--mist);">From</label>
+      <input type="date" id="dateFrom" class="date-input"/>
+      <label style="font-size:.78rem;color:var(--mist);">To</label>
+      <input type="date" id="dateTo"   class="date-input"/>
+      <button class="btn-filter" onclick="loadExpenses()">↻ Apply</button>
+      <span class="total-label">Total: <strong id="totalExpenses">—</strong></span>
+      <span class="count-label" id="expenseCount"></span>
+      <button class="btn-add" id="addExpenseBtn" onclick="openAddModal()">＋ Add Expense</button>
+    </div>
+
+    <div class="content-split">
+
+      <!-- Table -->
+      <div class="card">
+        <table class="expense-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Added By</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBody">
+            <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Category breakdown -->
+      <div class="breakdown-card">
+        <div class="breakdown-title">By Category</div>
+        <div id="categoryBreakdown">
+          <div style="color:var(--mist);font-size:.82rem;">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-backdrop" id="expenseModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Add Expense</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="return false;">
+      <div class="form-row">
+        <div class="form-field">
+          <label for="fieldCategory">Category</label>
+          <select id="fieldCategory" class="field-input">
+            <option value="Utilities">Utilities</option>
+            <option value="Supplies">Supplies</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Salary">Salary</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="fieldExpenseDate">Date</label>
+          <input type="date" id="fieldExpenseDate" class="field-input"/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label for="fieldDescription">Description *</label>
+        <input type="text" id="fieldDescription" class="field-input"
+               placeholder="e.g. Meralco bill - January"/>
+        <div class="field-error" id="errDescription"></div>
+      </div>
+      <div class="form-field">
+        <label for="fieldAmount">Amount (₱) *</label>
+        <input type="number" id="fieldAmount" class="field-input"
+               placeholder="0.00" min="0" step="0.01"/>
+        <div class="field-error" id="errAmount"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">Add Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal-box small">
+    <div class="confirm-icon">🗑️</div>
+    <p class="confirm-msg">
+      Delete expense:<br/>
+      <strong id="deleteExpenseDesc"></strong>?<br/>
+      <small style="color:var(--mist);">This cannot be undone.</small>
+    </p>
+    <div style="display:flex;gap:.75rem;justify-content:center;">
+      <button class="btn-cancel-modal" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-confirm-del" id="confirmDeleteBtn" onclick="executeDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/BOMS-EVAgas/assets/js/api.js"></script>
+<script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
+<script src="/BOMS-EVAgas/assets/js/admin/expenses.js"></script>
+</body>
+</html>
