@@ -34,8 +34,9 @@ const Api = {
         const response = await fetch(`${API_BASE}/${endpoint}`, options);
         const data = await response.json();
 
-        // Token expired or invalid — force re-login
-        if (response.status === 401) {
+        // A 401 from a protected endpoint means the saved token is expired or invalid.
+        // Login intentionally returns 401 for invalid credentials, which must remain on this page.
+        if (response.status === 401 && endpoint !== 'auth/login.php') {
             Auth.logout(); // clears localStorage
             window.location.href = '/BOMS-EVAgas/public/index.html';
             return;

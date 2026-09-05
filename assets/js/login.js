@@ -45,6 +45,7 @@
 
     // If Auth.login() returned an error message, show it
     if (error) {
+      document.getElementById('password').value = '';
       showError(error);
       btn.disabled = false;
       btn.classList.remove('loading');
