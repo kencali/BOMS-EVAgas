@@ -168,7 +168,7 @@ function renderLowStock(items) {
     }
     tbody.innerHTML = items.map(item => `
         <tr>
-            <td>${item.name}</td>
+            <td>${item.product_name}</td>
             <td class="stock-qty ${item.stock <= 2 ? 'critical' : 'warning'}">
                 ${item.stock} left
             </td>

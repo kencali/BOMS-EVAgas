@@ -126,7 +126,8 @@ function renderTable(deliveries) {
             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        const canCancel = d.delivery_status !== 'Delivered' && d.delivery_status !== 'Cancelled';
+        const canCancel   = d.delivery_status !== 'Delivered' && d.delivery_status !== 'Cancelled';
+        const canComplete = d.delivery_status === 'On the way';
 
         return `
             <tr>
@@ -142,6 +143,10 @@ function renderTable(deliveries) {
                 <td class="col-actions">
                     <button class="btn-action edit"
                             onclick="openEditModal(${d.id})">Edit</button>
+                    ${canComplete
+                        ? `<button class="btn-action deliver"
+                                   onclick="completeDelivery(${d.id})">Mark Delivered</button>`
+                        : ''}
                     ${canCancel
                         ? `<button class="btn-action cancel"
                                    onclick="confirmCancel(${d.id}, '${escHtml(d.customer_name)}')">Cancel</button>`
@@ -172,7 +177,6 @@ function openAddModal() {
     editingId = null;
     document.getElementById('modalTitle').textContent   = 'New Delivery';
     document.getElementById('submitBtn').textContent    = 'Create Delivery';
-    document.getElementById('statusRow').style.display  = 'none';
     document.getElementById('deliveryModal').querySelector('form').reset();
     clearFieldErrors();
     populateDropdowns();
@@ -187,7 +191,6 @@ function openEditModal(id) {
     editingId = id;
     document.getElementById('modalTitle').textContent   = `Edit Delivery #${id}`;
     document.getElementById('submitBtn').textContent    = 'Save Changes';
-    document.getElementById('statusRow').style.display  = 'flex';
     clearFieldErrors();
     populateDropdowns();
 
@@ -198,7 +201,6 @@ function openEditModal(id) {
     document.getElementById('fieldProductId').value       = delivery.product_id;
     document.getElementById('fieldQuantity').value        = delivery.quantity;
     document.getElementById('fieldAssignedTo').value      = delivery.assigned_to ?? '';
-    document.getElementById('fieldDeliveryStatus').value  = delivery.delivery_status;
     document.getElementById('fieldNotes').value           = delivery.notes ?? '';
 
     document.getElementById('deliveryModal').classList.add('open');
@@ -215,7 +217,6 @@ async function handleSubmit() {
         product_id:       parseInt(document.getElementById('fieldProductId').value)  || 0,
         quantity:         parseInt(document.getElementById('fieldQuantity').value)    || 0,
         assigned_to:      parseInt(document.getElementById('fieldAssignedTo').value) || null,
-        delivery_status:  document.getElementById('fieldDeliveryStatus').value,
         notes:            document.getElementById('fieldNotes').value.trim(),
     };
 
@@ -285,6 +286,24 @@ async function executeCancel() {
     } finally {
         btn.disabled    = false;
         btn.textContent = 'Yes, Cancel It';
+    }
+}
+
+// ── Complete delivery explicitly ────────────────────────────
+async function completeDelivery(id) {
+    if (!window.confirm('Mark this delivery as delivered? This will create its sale and deduct stock.')) {
+        return;
+    }
+
+    try {
+        const result = await Api.put(
+            `deliveries/index.php?id=${id}&action=status`,
+            { delivery_status: 'Delivered' }
+        );
+        showToast(`Delivery completed. Sale reference: ${result.reference_no}`, 'success');
+        loadDeliveries();
+    } catch (err) {
+        showToast(err.message, 'error');
     }
 }
 

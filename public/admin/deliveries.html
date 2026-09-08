@@ -70,6 +70,8 @@
     .btn-action{padding:.32rem .75rem;border-radius:7px;border:1px solid;font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;margin-right:.35rem;}
     .btn-action.edit{border-color:rgba(90,200,250,.3);color:var(--blue);background:rgba(90,200,250,.08);}
     .btn-action.edit:hover{background:rgba(90,200,250,.18);}
+    .btn-action.deliver{border-color:rgba(52,199,89,.3);color:var(--green);background:rgba(52,199,89,.08);}
+    .btn-action.deliver:hover{background:rgba(52,199,89,.18);}
     .btn-action.cancel{border-color:rgba(255,59,48,.3);color:var(--red);background:rgba(255,59,48,.08);}
     .btn-action.cancel:hover{background:rgba(255,59,48,.18);}
 
@@ -194,8 +196,7 @@
 <!-- ── Add / Edit Delivery Modal ──────────────────────────── -->
 <!-- IDs used by deliveries.js: deliveryModal, modalTitle, submitBtn,
      fieldCustomerName, fieldCustomerPhone, fieldCustomerAddress,
-     fieldProductId, fieldQuantity, fieldAssignedTo,
-     fieldDeliveryStatus, fieldNotes, statusRow,
+     fieldProductId, fieldQuantity, fieldAssignedTo, fieldNotes,
      errCustomerName, errCustomerAddress, errProductId, errQuantity -->
 <div class="modal-backdrop" id="deliveryModal">
   <div class="modal-box">
@@ -250,18 +251,6 @@
         <label for="fieldAssignedTo">Assign To (Deliverer)</label>
         <select id="fieldAssignedTo" class="field-input">
           <option value="">-- Unassigned --</option>
-        </select>
-      </div>
-
-      <!-- Status (only shown when editing) -->
-      <!-- ID: statusRow — toggled by openAddModal / openEditModal -->
-      <div class="form-field" id="statusRow" style="display:none;">
-        <label for="fieldDeliveryStatus">Status</label>
-        <select id="fieldDeliveryStatus" class="field-input">
-          <option value="Pending">Pending</option>
-          <option value="On the way">On the way</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Cancelled">Cancelled</option>
         </select>
       </div>
 

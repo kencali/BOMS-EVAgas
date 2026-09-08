@@ -12,6 +12,7 @@ function renderSidebar() {
         { href: '/BOMS-EVAgas/public/employee/dashboard.html', label: 'Dashboard', icon: '▦' },
         { href: '/BOMS-EVAgas/public/employee/pos.html',       label: 'Point of Sale', icon: '₱' },
         { href: '/BOMS-EVAgas/public/employee/orders.html',    label: "Today's Sales", icon: '⊞' },
+        { href: '/BOMS-EVAgas/public/employee/deliveries.html', label: 'Deliveries',     icon: '🚚' },
         { href: '/BOMS-EVAgas/public/employee/inventory.html', label: 'Stock View',    icon: '⊟' },
     ];
 
