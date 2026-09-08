@@ -1,5 +1,5 @@
 Auth.guard(['admin']);
-Theme.init('dark');
+Theme.init();
 
 let products = [];
 let cart     = {};

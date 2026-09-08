@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap');
+
+/* BOMS light-only visual foundation. Loaded after page-specific styles. */
+:root {
+  --flame: #e84a1b;
+  --amber: #b96700;
+  --ink: #f6f4f0;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --ash: #f1eeea;
+  --mist: #6b6860;
+  --cream: #25231f;
+  --white: #ffffff;
+  --green: #16803c;
+  --red: #c9362b;
+  --blue: #0879b9;
+  --border: rgba(40, 35, 29, .12);
+  --border-mid: rgba(40, 35, 29, .18);
+  --bg: #f6f4f0;
+  --text: #25231f;
+  --text-sub: #6b6860;
+  --text-muted: #89847c;
+  --input-bg: #ffffff;
+  --card-hover: #fffaf6;
+  --shadow: 0 4px 18px rgba(58, 43, 29, .08);
+}
+
+html, body { background: var(--bg) !important; color: var(--text) !important; }
+body, body * { font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important; }
+.mono, .col-id, .stat-value, .kpi-value, .total-value, .tile-price, .qty-display, .ci-subtotal, .total-row .mono, .tendered-input, .change-val, .receipt-ref, .receipt-row .val, .detail-row .val, .sc-stock, .sc-price, .stock-qty, .stock-badge { font-family: 'Roboto Mono', 'Courier New', monospace !important; }
+body::before { background: radial-gradient(ellipse 60% 50% at 10% 90%, rgba(232,74,27,.10), transparent 65%), radial-gradient(ellipse 40% 60% at 90% 10%, rgba(255,159,10,.08), transparent 60%) !important; }
+.layout { background: var(--bg) !important; color: var(--text) !important; }
+.main-content { position: relative; isolation: isolate; }
+.main-content::before, .main-content::after { content: ""; position: fixed; pointer-events: none; z-index: -1; border-radius: 50%; }
+.main-content::before { width: 24rem; height: 24rem; right: -10rem; top: 5rem; border: 1px solid rgba(232,74,27,.12); box-shadow: 0 0 0 2.8rem rgba(232,74,27,.025), 0 0 0 5.6rem rgba(232,74,27,.018); }
+.main-content::after { width: 15rem; height: 15rem; left: 10rem; bottom: -9rem; border: 1px solid rgba(185,103,0,.10); box-shadow: 0 0 0 2.2rem rgba(185,103,0,.018); }
+.sidebar { background: #fff !important; border-color: var(--border) !important; box-shadow: 2px 0 12px rgba(58,43,29,.04); }
+.sidebar-brand, .sidebar-footer { border-color: var(--border) !important; }
+.brand-name, .user-name, .page-title, .panel-title, .card-title, .modal-title, .receipt-title, .customer-name, .product-name, .emp-name, .sc-name, .tile-name, .cart-title, .stat-value, .total-value, .kpi-value, .white, .kv-white, .ci-subtotal, .total-row.grand, .receipt-row.grand .val { color: var(--text) !important; }
+.brand-sub, .branch-badge, .user-role, .page-subtitle { color: var(--text-sub) !important; }
+.nav-link { color: var(--text-sub) !important; }
+.nav-link:hover { color: var(--text) !important; background: #fff5ef !important; }
+.nav-link.active { color: var(--flame) !important; background: #fff0e8 !important; }
+
+.card, .stat-card, .kpi-card, .total-card, .period-panel, .quick-card, .stock-card, .product-tile, .cart-panel, .panel, .chart-card, .table-card, .modal-box, .receipt-box, .toast, .delivery-card { background: var(--card) !important; border-color: var(--border) !important; box-shadow: var(--shadow); }
+.quick-card:hover, .product-tile:hover { background: var(--card-hover) !important; }
+.cart-item, .card-notes { background: #faf8f5 !important; border-color: var(--border) !important; }
+.receipt-divider { border-color: var(--border) !important; }
+.cat-bar-track { background: #ece8e2 !important; }
+table thead th, .sales-table thead th, .delivery-table thead th, .payroll-table thead th, .report-table thead th { background: #faf8f5 !important; color: var(--text-sub) !important; border-color: var(--border) !important; }
+td, th, tr { border-color: var(--border) !important; }
+
+input, select, textarea, .field-input, .search-input, .date-input, .period-input, .tendered-input, .filter-select { background: var(--input-bg) !important; color: var(--text) !important; border-color: var(--border) !important; }
+input::placeholder, textarea::placeholder { color: var(--text-muted) !important; }
+input:focus, select:focus, textarea:focus { border-color: var(--flame) !important; box-shadow: 0 0 0 3px rgba(232,74,27,.12) !important; }
+.date-display-control { display: inline-grid; position: relative; min-width: 148px; min-height: 2.45rem; vertical-align: middle; cursor: pointer; }
+.date-display-control::after { content: '📅'; position: absolute; right: .7rem; top: 50%; z-index: 0; font-size: .9rem; line-height: 1; transform: translateY(-50%); pointer-events: none; }
+.date-display-value { display: flex; align-items: center; width: 100%; padding: .6rem 2.35rem .6rem .9rem; color: var(--text-muted); background: var(--input-bg); border: 1px solid var(--border); border-radius: 9px; font-size: .85rem; pointer-events: none; }
+.date-display-control.has-value .date-display-value { color: var(--text); }
+.native-date-control { position: absolute; inset: 0; z-index: 1; width: 100% !important; height: 100%; opacity: 0; cursor: pointer; }
+.native-date-control:focus + .date-display-value { border-color: var(--flame); box-shadow: 0 0 0 3px rgba(232,74,27,.12); }
+.btn-cancel, .btn-cancel-modal, .btn-load, .btn-apply, .btn-refresh, .theme-toggle-btn { background: #fff !important; color: var(--text-sub) !important; border-color: var(--border) !important; }
+.btn-cancel:hover, .btn-cancel-modal:hover, .btn-load:hover, .btn-apply:hover, .btn-refresh:hover { color: var(--text) !important; border-color: var(--flame) !important; }
+.qty-btn { background: #faf8f5 !important; color: var(--text) !important; border-color: var(--border) !important; }
+
+.status-cancelled, .status-badge.inactive, .count-badge.cancelled { background: #f1eeea !important; color: var(--text-sub) !important; border-color: var(--border) !important; }
+.modal-backdrop { background: rgba(34, 28, 22, .36) !important; }
+.error-msg, .toast.error { background: #fff1f0 !important; }
+.btn-logout { background: #fff3f1 !important; color: var(--red) !important; border-color: rgba(201,54,43,.2) !important; }
+.btn-logout:hover { background: #ffe7e4 !important; }
+.btn-add, .btn-submit, .btn-compute, .btn-checkout, .btn-login, .btn-new-sale { box-shadow: 0 5px 14px rgba(232,74,27,.20); }
+
+/* The login is the single branded orange surface; application workspaces stay calm and light. */
+.brand-panel { position: relative; overflow: hidden; background: linear-gradient(145deg, #f45a23 0%, #e84a1b 58%, #c93b16 100%) !important; color: #fff !important; }
+.brand-panel::before, .brand-panel::after { content: ""; position: absolute; pointer-events: none; border-radius: 50%; border: 1px solid rgba(255,255,255,.30); }
+.brand-panel::before { width: 31rem; height: 31rem; right: -15rem; top: -11rem; box-shadow: 0 0 0 3rem rgba(255,255,255,.07), 0 0 0 6rem rgba(255,255,255,.045); }
+.brand-panel::after { width: 20rem; height: 20rem; left: -12rem; bottom: -14rem; box-shadow: 0 0 0 2.2rem rgba(255,255,255,.06); }
+.brand-panel > * { position: relative; z-index: 1; }
+.brand-panel h1, .brand-panel h1 span { color: #fff !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+.brand-panel .tagline, .brand-panel p, .brand-panel .role-badge { color: rgba(255,255,255,.86) !important; }
+.brand-panel .role-badge { padding-left: .75rem; border-left: 1px solid rgba(255,255,255,.36); background: transparent !important; }
+.brand-panel .role-badge .dot { box-shadow: 0 0 0 3px rgba(255,255,255,.14) !important; }
+.brand-panel .role-badge.admin .dot { background: #fff !important; border-color: #fff !important; }
+.brand-panel .role-badge.employee .dot { background: #ffd166 !important; border-color: #ffd166 !important; }
+.brand-panel .role-badge.deliver .dot { background: #8ed8ff !important; border-color: #8ed8ff !important; }
+.form-panel { position: relative; overflow: hidden; }
+.form-panel::before { content: ""; position: absolute; width: 22rem; height: 22rem; right: -15rem; bottom: -15rem; pointer-events: none; border: 1px solid rgba(232,74,27,.12); border-radius: 50%; box-shadow: 0 0 0 2.5rem rgba(232,74,27,.025), 0 0 0 5rem rgba(232,74,27,.016); }
+.form-panel > * { position: relative; z-index: 1; }
+.form-card { padding: 2.5rem !important; background: rgba(255,255,255,.96) !important; border: 1px solid var(--border) !important; border-radius: 18px !important; box-shadow: 0 18px 44px rgba(58,43,29,.12) !important; }
+.form-card h2 { color: var(--text) !important; }
+
+@media (max-width: 480px) {
+  .form-card { padding: 1.75rem !important; border-radius: 14px !important; }
+}
+
+/* Chart canvas is transparent; surrounding panels and labels remain light/readable. */
+canvas { max-width: 100%; }

@@ -136,6 +136,7 @@ function openAddModal() {
     // Default hire date to today
     document.getElementById('fieldHireDate').value =
         new Date().toISOString().split('T')[0];
+    document.getElementById('fieldHireDate').dispatchEvent(new Event('change'));
     clearFieldErrors();
     document.getElementById('employeeModal').classList.add('open');
 }
@@ -157,6 +158,7 @@ function openEditModal(id) {
     document.getElementById('fieldPhone').value     = emp.phone;
     document.getElementById('fieldAddress').value   = emp.address;
     document.getElementById('fieldHireDate').value  = emp.hire_date;
+    document.getElementById('fieldHireDate').dispatchEvent(new Event('change'));
     document.getElementById('fieldDailyRate').value = emp.daily_rate;
     document.getElementById('fieldStatus').value    = emp.status;
 

@@ -53,6 +53,13 @@ function renderStats(stats) {
             icon:  '₱'
         },
         {
+            id:    'stat-today-sales',
+            label: "Today's Sales",
+            value: peso(stats.today_sales),
+            color: 'green',
+            icon:  '₱'
+        },
+        {
             id:    'stat-expenses',
             label: 'Total Expenses',
             value: peso(stats.total_expenses),
@@ -143,7 +150,7 @@ function renderChart({ labels, totals }) {
             scales: {
                 x: {
                     ticks: { color: '#9E9B92', font: { family: 'Sora', size: 11 } },
-                    grid:  { color: 'rgba(255,255,255,.05)' }
+                    grid:  { color: 'rgba(40,35,29,.10)' }
                 },
                 y: {
                     ticks: {
@@ -151,7 +158,7 @@ function renderChart({ labels, totals }) {
                         font:  { family: 'Sora', size: 11 },
                         callback: val => '₱' + Number(val).toLocaleString()
                     },
-                    grid: { color: 'rgba(255,255,255,.05)' }
+                    grid: { color: 'rgba(40,35,29,.10)' }
                 }
             }
         }

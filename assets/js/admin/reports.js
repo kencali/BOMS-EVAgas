@@ -70,6 +70,8 @@ function setDefaultDates() {
     document.getElementById('dateTo').value      = fmt(now);
     document.getElementById('periodStart').value = fmt(firstDay);
     document.getElementById('periodEnd').value   = fmt(lastDay);
+    document.querySelectorAll('#dateFrom, #dateTo, #periodStart, #periodEnd')
+        .forEach(input => input.dispatchEvent(new Event('change')));
 }
 
 // ── Build API params for current tab ──────────────────────
@@ -103,10 +105,10 @@ const CHART_DEFAULTS = {
     },
     scales: {
         x: { ticks: { color: '#9E9B92', font: { family: 'Sora', size: 10 } },
-              grid: { color: 'rgba(255,255,255,.05)' } },
+              grid: { color: 'rgba(40,35,29,.10)' } },
         y: { ticks: { color: '#9E9B92', font: { family: 'Sora', size: 10 },
                        callback: v => '₱' + Number(v).toLocaleString() },
-              grid: { color: 'rgba(255,255,255,.05)' } },
+              grid: { color: 'rgba(40,35,29,.10)' } },
     }
 };
 

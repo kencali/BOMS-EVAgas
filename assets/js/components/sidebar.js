@@ -86,14 +86,21 @@ function renderSidebar() {
 
 // CSS for sidebar — injected once so every page gets it automatically
 (function injectSidebarStyles() {
+    if (!document.querySelector('link[href*="/assets/css/light-theme.css"]')) {
+        const theme = document.createElement('link');
+        theme.id = 'boms-light-theme';
+        theme.rel = 'stylesheet';
+        theme.href = '/BOMS-EVAgas/assets/css/light-theme.css';
+        document.head.appendChild(theme);
+    }
     const style = document.createElement('style');
     style.textContent = `
         /* ── Layout shell ─────────────────────────────── */
         .layout {
             display: flex;
             min-height: 100vh;
-            background: #0F0E0C;
-            color: #F5F0E8;
+            background: var(--bg);
+            color: var(--text);
             font-family: 'Sora', sans-serif;
         }
 
@@ -101,8 +108,8 @@ function renderSidebar() {
         .sidebar {
             width: 240px;
             min-width: 240px;
-            background: #141310;
-            border-right: 1px solid rgba(255,255,255,.06);
+            background: var(--card);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 1.5rem 0;
@@ -118,11 +125,11 @@ function renderSidebar() {
             align-items: center;
             gap: .75rem;
             padding: 0 1.25rem 1.25rem;
-            border-bottom: 1px solid rgba(255,255,255,.06);
+            border-bottom: 1px solid var(--border);
         }
         .brand-flame { font-size: 1.6rem; line-height: 1; }
-        .brand-name  { font-size: 1rem; font-weight: 700; color: #FFFFFF; letter-spacing: .04em; }
-        .brand-sub   { font-size: .65rem; color: #9E9B92; letter-spacing: .06em; text-transform: uppercase; }
+        .brand-name  { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: .04em; }
+        .brand-sub   { font-size: .65rem; color: var(--text-sub); letter-spacing: .06em; text-transform: uppercase; }
 
         /* Branch badge */
         .branch-badge {
@@ -131,7 +138,7 @@ function renderSidebar() {
             gap: .5rem;
             padding: .75rem 1.25rem;
             font-size: .72rem;
-            color: #9E9B92;
+            color: var(--text-sub);
             letter-spacing: .06em;
             text-transform: uppercase;
         }
@@ -151,14 +158,14 @@ function renderSidebar() {
             align-items: center;
             gap: .75rem;
             padding: .65rem 1.25rem;
-            color: #9E9B92;
+            color: var(--text-sub);
             text-decoration: none;
             font-size: .84rem;
             border-radius: 0;
             transition: color .15s, background .15s;
             border-left: 2px solid transparent;
         }
-        .nav-link:hover { color: #F5F0E8; background: rgba(255,255,255,.04); }
+        .nav-link:hover { color: var(--text); background: #fff5ef; }
         .nav-link.active {
             color: #FF4B1F;
             background: rgba(255,75,31,.08);
@@ -171,7 +178,7 @@ function renderSidebar() {
         /* Footer */
         .sidebar-footer {
             padding: 1rem 1.25rem 0;
-            border-top: 1px solid rgba(255,255,255,.06);
+            border-top: 1px solid var(--border);
         }
         .sidebar-user {
             display: flex;
@@ -187,8 +194,8 @@ function renderSidebar() {
             font-size: .8rem; font-weight: 700; color: white;
             flex-shrink: 0;
         }
-        .user-name { font-size: .82rem; font-weight: 600; color: #F5F0E8; }
-        .user-role { font-size: .68rem; color: #9E9B92; text-transform: capitalize; }
+        .user-name { font-size: .82rem; font-weight: 600; color: var(--text); }
+        .user-role { font-size: .68rem; color: var(--text-sub); text-transform: capitalize; }
 
         .btn-logout {
             width: 100%;
@@ -220,8 +227,8 @@ function renderSidebar() {
             justify-content: space-between;
             margin-bottom: 2rem;
         }
-        .page-title { font-size: 1.6rem; font-weight: 700; color: #FFFFFF; }
-        .page-subtitle { font-size: .82rem; color: #9E9B92; margin-top: .2rem; }
+        .page-title { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+        .page-subtitle { font-size: .82rem; color: var(--text-sub); margin-top: .2rem; }
 
         /* ── Responsive ────────────────────────────────── */
         @media (max-width: 768px) {

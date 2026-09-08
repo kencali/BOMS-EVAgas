@@ -51,6 +51,8 @@ function setDefaultDates() {
     const fmt      = d => d.toISOString().split('T')[0];
     document.getElementById('dateFrom').value = fmt(firstDay);
     document.getElementById('dateTo').value   = fmt(now);
+    document.querySelectorAll('#dateFrom, #dateTo')
+        .forEach(input => input.dispatchEvent(new Event('change')));
 }
 
 // ── Load expenses ──────────────────────────────────────────
@@ -158,6 +160,7 @@ function openAddModal() {
     document.getElementById('expenseModal').querySelector('form').reset();
     document.getElementById('fieldExpenseDate').value  =
         new Date().toISOString().split('T')[0]; // default to today
+    document.getElementById('fieldExpenseDate').dispatchEvent(new Event('change'));
     clearFieldErrors();
     document.getElementById('expenseModal').classList.add('open');
 }
@@ -177,6 +180,7 @@ function openEditModal(id) {
     document.getElementById('fieldDescription').value = expense.description;
     document.getElementById('fieldAmount').value      = expense.amount;
     document.getElementById('fieldExpenseDate').value = expense.expense_date;
+    document.getElementById('fieldExpenseDate').dispatchEvent(new Event('change'));
 
     document.getElementById('expenseModal').classList.add('open');
 }

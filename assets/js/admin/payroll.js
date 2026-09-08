@@ -56,6 +56,8 @@ function setDefaultPeriod() {
 
     document.getElementById('periodStart').value = fmt(firstDay);
     document.getElementById('periodEnd').value   = fmt(lastDay);
+    document.querySelectorAll('#periodStart, #periodEnd')
+        .forEach(input => input.dispatchEvent(new Event('change')));
 }
 
 // ── Load payroll records for selected period ───────────────

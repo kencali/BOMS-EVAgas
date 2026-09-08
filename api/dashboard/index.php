@@ -36,7 +36,12 @@ $stmt = $db->prepare("SELECT COALESCE(SUM(total_amount), 0) AS total FROM sales 
 $stmt->execute([$requestedBranch]);
 $total_sales = (float)$stmt->fetch()['total'];
 
-// ── STAT 2: Total Products ────────────────────────────────
+// ── STAT 2: Today's Sales ─────────────────────────────────
+$stmt = $db->prepare("\n    SELECT COALESCE(SUM(total_amount), 0) AS total\n    FROM sales\n    WHERE branch_id = ?\n      AND sale_date >= CURDATE()\n      AND sale_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)\n");
+$stmt->execute([$requestedBranch]);
+$today_sales = (float)$stmt->fetch()['total'];
+
+// ── STAT 3: Total Products ────────────────────────────────
 $stmt = $db->prepare("SELECT COUNT(*) AS total FROM products WHERE branch_id = ?");
 $stmt->execute([$requestedBranch]);
 $total_products = (int)$stmt->fetch()['total'];
@@ -95,6 +100,7 @@ sendSuccess([
     'is_own_branch'  => ($requestedBranch === $user['branch_id']),
     'stats' => [
         'total_sales'     => $total_sales,
+        'today_sales'     => $today_sales,
         'total_products'  => $total_products,
         'total_employees' => $total_employees,
         'total_pending'   => $total_pending,

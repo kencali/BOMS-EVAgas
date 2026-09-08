@@ -1,37 +1,20 @@
 // File: assets/js/theme.js
 // Place in: /assets/js/theme.js
-// Handles dark/light theme switching across the whole system.
-// Employee pages default to light, admin/deliverer default to dark.
-// The preference is saved so it persists between page visits.
+// Applies the system-wide light-only visual variables.
 
 const Theme = {
 
-    // Call this at the very top of every page's DOMContentLoaded
-    // Pass the default if no saved preference exists
-    init(defaultTheme = 'dark') {
-        const saved = localStorage.getItem('boms_theme') || defaultTheme;
-        this.apply(saved);
+    init() {
+        this.apply();
     },
 
-    apply(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('boms_theme', theme);
-
-        // Update the toggle button icon if one exists on the page
-        const btn = document.getElementById('themeToggleBtn');
-        if (btn) {
-            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
-            btn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-        }
-    },
-
-    toggle() {
-        const current = document.documentElement.getAttribute('data-theme') || 'dark';
-        this.apply(current === 'dark' ? 'light' : 'dark');
+    apply() {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.removeItem('boms_theme');
     },
 
     current() {
-        return document.documentElement.getAttribute('data-theme') || 'dark';
+        return 'light';
     }
 };
 
@@ -41,32 +24,7 @@ const Theme = {
     const style = document.createElement('style');
     style.textContent = `
 
-        /* Dark theme (default for admin and deliverer) */
-        :root[data-theme="dark"],
-        :root:not([data-theme]) {
-            --bg:          #0F0E0C;
-            --surface:     #141310;
-            --card:        #1E1C19;
-            --card-hover:  #252320;
-            --border:      rgba(255,255,255,.07);
-            --border-mid:  rgba(255,255,255,.12);
-            --text:        #F5F0E8;
-            --text-sub:    #9E9B92;
-            --text-muted:  #6B6860;
-            --white:       #FFFFFF;
-            --input-bg:    #141310;
-            --shadow:      0 4px 24px rgba(0,0,0,.4);
-            --flame:       #FF4B1F;
-            --flame-soft:  rgba(255,75,31,.12);
-            --amber:       #FF9F0A;
-            --green:       #34C759;
-            --red:         #FF3B30;
-            --blue:        #5AC8FA;
-            --purple:      #BF5AF2;
-        }
-
-        /* Light theme (default for employee pages) */
-        :root[data-theme="light"] {
+        :root, :root[data-theme="light"] {
             --bg:          #F5F1EB;
             --surface:     #EDEAE3;
             --card:        #FFFFFF;

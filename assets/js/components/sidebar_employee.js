@@ -62,6 +62,13 @@ function renderSidebar() {
 
 // Inject same sidebar CSS as admin (reused)
 (function injectSidebarStyles() {
+    if (!document.querySelector('link[href*="/assets/css/light-theme.css"]')) {
+        const theme = document.createElement('link');
+        theme.id = 'boms-light-theme';
+        theme.rel = 'stylesheet';
+        theme.href = '/BOMS-EVAgas/assets/css/light-theme.css';
+        document.head.appendChild(theme);
+    }
     const style = document.createElement('style');
     style.textContent = `
         .layout { display:flex; min-height:100vh; background:#0F0E0C; color:#F5F0E8; font-family:'Sora',sans-serif; }
