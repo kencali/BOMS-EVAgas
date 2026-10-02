@@ -49,50 +49,43 @@ function renderStats(stats) {
             id:    'stat-sales',
             label: 'Total Sales',
             value: peso(stats.total_sales),
-            color: 'green',
-            icon:  '₱'
+            color: 'green'
         },
         {
             id:    'stat-today-sales',
             label: "Today's Sales",
             value: peso(stats.today_sales),
-            color: 'green',
-            icon:  '₱'
+            color: 'green'
         },
         {
             id:    'stat-expenses',
             label: 'Total Expenses',
             value: peso(stats.total_expenses),
-            color: 'red',
-            icon:  '⊖'
+            color: 'red'
         },
         {
             id:    'stat-income',
             label: 'Net Income',
             value: peso(stats.net_income),
-            color: stats.net_income >= 0 ? 'green' : 'red',
-            icon:  stats.net_income >= 0 ? '↑' : '↓'
+            color: stats.net_income >= 0 ? 'green' : 'red'
         },
         {
             id:    'stat-products',
             label: 'Total Products',
             value: stats.total_products,
-            color: 'blue',
-            icon:  '⊞'
+            color: 'blue'
         },
         {
             id:    'stat-employees',
             label: 'Active Employees',
             value: stats.total_employees,
-            color: 'amber',
-            icon:  '⊛'
+            color: 'amber'
         },
         {
             id:    'stat-deliveries',
             label: 'Pending Deliveries',
             value: stats.total_pending,
-            color: stats.total_pending > 0 ? 'red' : 'green',
-            icon:  '⊕'
+            color: stats.total_pending > 0 ? 'red' : 'green'
         },
     ];
 

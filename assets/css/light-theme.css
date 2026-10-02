@@ -75,14 +75,37 @@ input:focus, select:focus, textarea:focus { border-color: var(--flame) !importan
 .brand-panel::before, .brand-panel::after { content: ""; position: absolute; pointer-events: none; border-radius: 50%; border: 1px solid rgba(255,255,255,.30); }
 .brand-panel::before { width: 31rem; height: 31rem; right: -15rem; top: -11rem; box-shadow: 0 0 0 3rem rgba(255,255,255,.07), 0 0 0 6rem rgba(255,255,255,.045); }
 .brand-panel::after { width: 20rem; height: 20rem; left: -12rem; bottom: -14rem; box-shadow: 0 0 0 2.2rem rgba(255,255,255,.06); }
-.brand-panel > * { position: relative; z-index: 1; }
+.brand-panel > :not(.gas-cylinder) { position: relative; z-index: 3; }
 .brand-panel h1, .brand-panel h1 span { color: #fff !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
-.brand-panel .tagline, .brand-panel p, .brand-panel .role-badge { color: rgba(255,255,255,.86) !important; }
-.brand-panel .role-badge { padding-left: .75rem; border-left: 1px solid rgba(255,255,255,.36); background: transparent !important; }
-.brand-panel .role-badge .dot { box-shadow: 0 0 0 3px rgba(255,255,255,.14) !important; }
-.brand-panel .role-badge.admin .dot { background: #fff !important; border-color: #fff !important; }
-.brand-panel .role-badge.employee .dot { background: #ffd166 !important; border-color: #ffd166 !important; }
-.brand-panel .role-badge.deliver .dot { background: #8ed8ff !important; border-color: #8ed8ff !important; }
+.brand-panel .tagline, .brand-panel p { color: rgba(255,255,255,.88) !important; }
+.brand-panel .tagline { max-width: 25rem; }
+.brand-panel h1 { max-width: 22rem; }
+.brand-panel p, .brand-panel .feature-list { max-width: 24rem; }
+.brand-panel p { line-height: 1.78 !important; margin-bottom: 2.5rem !important; }
+.gas-cylinder { position: absolute; z-index: 4; width: clamp(14rem, 20vw, 22.5rem); height: auto; left: 50%; top: 50%; transform: translate(-75%, -50%); pointer-events: none; filter: drop-shadow(0 22px 17px rgba(89,22,4,.34)); }
+.feature-list { display: grid; gap: 1.2rem; }
+.feature-item { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); align-items: center; gap: .8rem; color: #fff; }
+.feature-item strong, .feature-item span { display: block; }
+.feature-item strong { font-size: .86rem; font-weight: 700; line-height: 1.2; }
+.feature-item div > span { margin-top: .24rem; font-size: .73rem; line-height: 1.55; color: rgba(255,255,255,.84); }
+.feature-icon-placeholder { width: 2.15rem; height: 2.15rem; border: 1.5px dashed rgba(255,255,255,.78); border-radius: .48rem; position: relative; }
+.feature-icon-placeholder::before { content: ''; position: absolute; inset: .48rem; border: 1px solid rgba(255,255,255,.68); border-radius: .2rem; }
+
+@media (max-width: 1500px) {
+  .gas-cylinder { width: 17rem; opacity: .96; }
+  .brand-panel .tagline { max-width: 25rem; }
+  .brand-panel h1 { max-width: 22rem; }
+  .brand-panel p, .brand-panel .feature-list { max-width: 24rem; }
+}
+
+@media (max-width: 1100px) {
+  .gas-cylinder { width: 13rem; }
+  .brand-panel h1, .brand-panel p, .brand-panel .feature-list { max-width: 16.5rem; }
+}
+
+@media (max-width: 768px) {
+  .gas-cylinder { display: none; }
+}
 .form-panel { position: relative; overflow: hidden; }
 .form-panel::before { content: ""; position: absolute; width: 22rem; height: 22rem; right: -15rem; bottom: -15rem; pointer-events: none; border: 1px solid rgba(232,74,27,.12); border-radius: 50%; box-shadow: 0 0 0 2.5rem rgba(232,74,27,.025), 0 0 0 5rem rgba(232,74,27,.016); }
 .form-panel > * { position: relative; z-index: 1; }

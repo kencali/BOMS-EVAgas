@@ -80,7 +80,7 @@
     /* ── Stat cards grid ─────────────────────────────── */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
         gap: 1rem;
         margin-bottom: 1.75rem;
     }
@@ -89,27 +89,20 @@
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 14px;
-        padding: 1.25rem 1.4rem;
+        min-height: 112px;
+        padding: 1.2rem 1.35rem;
         display: flex;
         flex-direction: column;
-        gap: .4rem;
+        justify-content: center;
+        gap: .55rem;
         transition: border-color .2s;
     }
     .stat-card:hover { border-color: rgba(255,75,31,.25); }
 
-    .stat-icon {
-        font-size: 1.1rem;
-        width: 36px; height: 36px;
-        background: rgba(255,255,255,.05);
-        border-radius: 9px;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: .3rem;
-    }
-
-    .stat-label { font-size: .72rem; color: var(--mist); text-transform: uppercase; letter-spacing: .07em; }
+    .stat-label { font-size: .73rem; color: var(--mist); text-transform: uppercase; letter-spacing: .075em; }
 
     .stat-value {
-        font-size: 1.5rem;
+        font-size: clamp(1.35rem, 1.8vw, 1.7rem);
         font-weight: 700;
         font-family: 'Space Mono', monospace;
         letter-spacing: -.02em;
@@ -251,43 +244,36 @@
     <div class="stats-grid">
 
       <div class="stat-card" id="stat-sales">
-        <div class="stat-icon">₱</div>
         <div class="stat-label">Total Sales</div>
         <div class="stat-value color-green">---</div>
       </div>
 
       <div class="stat-card" id="stat-today-sales">
-        <div class="stat-icon">₱</div>
         <div class="stat-label">Today's Sales</div>
         <div class="stat-value color-green">---</div>
       </div>
 
       <div class="stat-card" id="stat-expenses">
-        <div class="stat-icon">⊖</div>
         <div class="stat-label">Total Expenses</div>
         <div class="stat-value color-red">---</div>
       </div>
 
       <div class="stat-card" id="stat-income">
-        <div class="stat-icon">↑</div>
         <div class="stat-label">Net Income</div>
         <div class="stat-value color-green">---</div>
       </div>
 
       <div class="stat-card" id="stat-products">
-        <div class="stat-icon">⊞</div>
         <div class="stat-label">Total Products</div>
         <div class="stat-value color-blue">---</div>
       </div>
 
       <div class="stat-card" id="stat-employees">
-        <div class="stat-icon">⊛</div>
         <div class="stat-label">Active Employees</div>
         <div class="stat-value color-amber">---</div>
       </div>
 
       <div class="stat-card" id="stat-deliveries">
-        <div class="stat-icon">⊕</div>
         <div class="stat-label">Pending Deliveries</div>
         <div class="stat-value color-red">---</div>
       </div>
