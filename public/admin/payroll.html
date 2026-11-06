@@ -163,9 +163,9 @@
                placeholder="e.g. 13" min="0.5" max="31" step="0.5"/>
       </div>
 
-      <button class="btn-load" onclick="loadPayroll()">↻ Load</button>
+      <button class="btn-load" onclick="loadPayroll()"><span data-icon="refresh" aria-hidden="true"></span> Load</button>
       <button class="btn-compute" id="computeBtn" onclick="computePayroll()">
-        ⊕ Compute Payroll
+        <span data-icon="plus" aria-hidden="true"></span> Compute Payroll
       </button>
       <button class="btn-release-all" id="releaseAllBtn" onclick="releaseAll()">
         ✓ Release All
@@ -218,7 +218,7 @@
         <!-- id="payrollTableBody" → written by renderTable() in payroll.js -->
         <tbody id="payrollTableBody">
           <tr><td colspan="8" class="table-empty">
-            Select a period and click ↻ Load.
+            Select a period and click Load.
           </td></tr>
         </tbody>
       </table>
@@ -299,6 +299,7 @@
 <!-- Script load order: api → auth → sidebar → page logic -->
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/date-display.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/payroll.js"></script>

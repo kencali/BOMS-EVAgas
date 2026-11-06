@@ -173,7 +173,7 @@
           All Stock
         </button>
         <button class="filter-tab" onclick="filterLow(); this.classList.add('active'); document.querySelectorAll('.filter-tab')[0].classList.remove('active');">
-          ⚠️ Low / Out Only
+          <span data-icon="alert" aria-hidden="true"></span> Low / Out Only
         </button>
       </div>
       <!-- id="inventoryCount" → written by loadInventory() -->
@@ -219,7 +219,7 @@
 
     <div class="modal-header">
       <h3 class="modal-title" id="adjustModalTitle">Adjust Stock</h3>
-      <button class="modal-close" onclick="closeAdjustModal()">✕</button>
+      <button class="modal-close" onclick="closeAdjustModal()" aria-label="Close stock adjustment" data-icon="x"></button>
     </div>
 
     <!-- Product name display -->
@@ -245,7 +245,7 @@
       <div class="adjust-type-group">
         <input type="radio" name="adj" id="adjAdd"      checked
                onclick="document.getElementById('adjustType').value='add'"/>
-        <label for="adjAdd">＋ Add</label>
+        <label for="adjAdd"><span data-icon="plus" aria-hidden="true"></span> Add</label>
 
         <input type="radio" name="adj" id="adjSubtract"
                onclick="document.getElementById('adjustType').value='subtract'"/>
@@ -295,6 +295,7 @@
 <!-- Script order: api → auth → sidebar → page logic -->
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/inventory.js"></script>
 </body>

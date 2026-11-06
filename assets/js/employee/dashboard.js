@@ -6,7 +6,7 @@ function setGreeting() {
     const h = new Date().getHours();
     const name = Auth.getUser().name?.split(' ')[0] || 'there';
     document.getElementById('greeting').textContent =
-        (h < 12 ? '🌅 Good morning' : h < 17 ? '☀️ Good afternoon' : '🌙 Good evening') + `, ${name}`;
+        (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + `, ${name}`;
     document.getElementById('dateLabel').textContent =
         new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }

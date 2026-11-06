@@ -97,7 +97,7 @@ function renderCart() {
     const checkBtn = document.getElementById('checkoutBtn');
 
     if (!items.length) {
-        cartEl.innerHTML = `<div class="cart-empty"><span class="empty-icon">🛒</span><span>Tap a product to add it</span></div>`;
+        cartEl.innerHTML = `<div class="cart-empty"><span class="empty-icon">${BomsIcons.icon('cart')}</span><span>Tap a product to add it</span></div>`;
         countEl.textContent = '';
         totalEl.textContent = '₱0.00';
         itemsEl.textContent = '0';

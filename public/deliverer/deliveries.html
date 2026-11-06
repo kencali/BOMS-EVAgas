@@ -83,7 +83,7 @@
         <p class="page-subtitle" id="deliveryDate"></p>
       </div>
       <button onclick="loadDeliveries()" style="padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--mist);font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;">
-        ↻ Refresh
+        <span data-icon="refresh" aria-hidden="true"></span> Refresh
       </button>
     </div>
 
@@ -91,15 +91,15 @@
     <!-- data-status values match ENUM values in DB exactly -->
     <div class="status-tabs">
       <button class="status-tab active" data-status="all"        onclick="filterByStatus('all')">All</button>
-      <button class="status-tab"        data-status="Pending"    onclick="filterByStatus('Pending')">🕐 Pending</button>
-      <button class="status-tab"        data-status="On the way" onclick="filterByStatus('On the way')">🚴 On the way</button>
-      <button class="status-tab"        data-status="Delivered"  onclick="filterByStatus('Delivered')">✅ Delivered</button>
+      <button class="status-tab"        data-status="Pending"    onclick="filterByStatus('Pending')"><span data-icon="clock" aria-hidden="true"></span> Pending</button>
+      <button class="status-tab"        data-status="On the way" onclick="filterByStatus('On the way')"><span data-icon="truck" aria-hidden="true"></span> On the way</button>
+      <button class="status-tab"        data-status="Delivered"  onclick="filterByStatus('Delivered')"><span data-icon="check" aria-hidden="true"></span> Delivered</button>
     </div>
 
     <!-- Cards render here -->
     <div class="delivery-cards" id="deliveryCards">
       <div class="empty-state">
-        <div class="empty-icon">📦</div>
+        <div class="empty-icon" data-icon="package" aria-hidden="true"></div>
         <div>Loading deliveries...</div>
       </div>
     </div>
@@ -111,6 +111,7 @@
 
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar_deliverer.js"></script>
 <script>
 // ── Guard: deliverer only ──────────────────────────────────
@@ -123,7 +124,7 @@ let activeFilter   = 'all';
 // ── Load deliveries ────────────────────────────────────────
 async function loadDeliveries() {
     document.getElementById('deliveryCards').innerHTML =
-        `<div class="empty-state"><div class="empty-icon">📦</div><div>Loading...</div></div>`;
+        `<div class="empty-state"><div class="empty-icon">${BomsIcons.icon('package')}</div><div>Loading...</div></div>`;
     try {
         // API automatically filters to only this deliverer's assignments
         // (enforced server-side in api/deliveries/index.php)
@@ -154,7 +155,7 @@ function renderCards(deliveries) {
     if (!deliveries.length) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📭</div>
+                <div class="empty-icon">${BomsIcons.icon('package')}</div>
                 <div>No ${activeFilter === 'all' ? '' : activeFilter.toLowerCase()} deliveries.</div>
             </div>`;
         return;
@@ -183,17 +184,17 @@ function renderCards(deliveries) {
                 ${canMarkOtw ? `
                     <button class="btn-status btn-otw"
                             onclick="updateStatus(${d.id}, 'On the way', this)">
-                        🚴 Start Delivery
+                        ${BomsIcons.icon('play')} Start Delivery
                     </button>` : ''}
                 ${canMarkDelivered ? `
                     <button class="btn-status btn-delivered"
                             onclick="updateStatus(${d.id}, 'Delivered', this)">
-                        ✅ Mark Delivered
+                        ${BomsIcons.icon('check')} Mark Delivered
                     </button>` : ''}
             </div>` : '';
 
         const notesHtml = d.notes
-            ? `<div class="card-notes">📝 ${escHtml(d.notes)}</div>` : '';
+            ? `<div class="card-notes">${BomsIcons.icon('receipt')} ${escHtml(d.notes)}</div>` : '';
 
         return `
             <div class="delivery-card ${cardClass}" id="dcard-${d.id}">
@@ -241,8 +242,8 @@ async function updateStatus(deliveryId, newStatus, buttonEl) {
 
         showToast(
             newStatus === 'Delivered'
-                ? '✅ Marked as delivered!'
-                : '🚴 Delivery started!',
+                ? 'Marked as delivered!'
+                : 'Delivery started!',
             'success'
         );
 
@@ -254,7 +255,7 @@ async function updateStatus(deliveryId, newStatus, buttonEl) {
     } catch (err) {
         showToast(err.message, 'error');
         buttonEl.disabled    = false;
-        buttonEl.textContent = newStatus === 'Delivered' ? '✅ Mark Delivered' : '🚴 Start Delivery';
+        buttonEl.innerHTML = newStatus === 'Delivered' ? `${BomsIcons.icon('check')} Mark Delivered` : `${BomsIcons.icon('play')} Start Delivery`;
     }
 }
 

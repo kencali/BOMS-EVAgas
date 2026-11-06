@@ -15,16 +15,16 @@ function renderSidebar() {
 
     // Nav links — add new pages here
     const navLinks = [
-        { href: '/BOMS-EVAgas/public/admin/dashboard.html',  label: 'Dashboard',  icon: '▦' },
-        { href: '/BOMS-EVAgas/public/admin/products.html',   label: 'Products',   icon: '⊞' },
-        { href: '/BOMS-EVAgas/public/admin/inventory.html',  label: 'Inventory',  icon: '⊟' },
-        { href: '/BOMS-EVAgas/public/admin/sales.html',      label: 'Sales',      icon: '₱' },
-        { href: '/BOMS-EVAgas/public/admin/deliveries.html', label: 'Deliveries', icon: '⊕' },
-        { href: '/BOMS-EVAgas/public/admin/pos.html', label: 'Point of Sale', icon: '₱' },
-        { href: '/BOMS-EVAgas/public/admin/employees.html',  label: 'Employees',  icon: '⊛' },
-        { href: '/BOMS-EVAgas/public/admin/payroll.html',    label: 'Payroll',    icon: '⊜' },
-        { href: '/BOMS-EVAgas/public/admin/expenses.html',   label: 'Expenses',   icon: '⊖' },
-        { href: '/BOMS-EVAgas/public/admin/reports.html',    label: 'Reports',    icon: '⊙' },
+        { href: '/BOMS-EVAgas/public/admin/dashboard.html',  label: 'Dashboard',  icon: 'dashboard' },
+        { href: '/BOMS-EVAgas/public/admin/products.html',   label: 'Products',   icon: 'package' },
+        { href: '/BOMS-EVAgas/public/admin/inventory.html',  label: 'Inventory',  icon: 'boxes' },
+        { href: '/BOMS-EVAgas/public/admin/sales.html',      label: 'Sales',      icon: 'receipt' },
+        { href: '/BOMS-EVAgas/public/admin/deliveries.html', label: 'Deliveries', icon: 'truck' },
+        { href: '/BOMS-EVAgas/public/admin/pos.html', label: 'Point of Sale', icon: 'cart' },
+        { href: '/BOMS-EVAgas/public/admin/employees.html',  label: 'Employees',  icon: 'users' },
+        { href: '/BOMS-EVAgas/public/admin/payroll.html',    label: 'Payroll',    icon: 'wallet' },
+        { href: '/BOMS-EVAgas/public/admin/expenses.html',   label: 'Expenses',   icon: 'wallet' },
+        { href: '/BOMS-EVAgas/public/admin/reports.html',    label: 'Reports',    icon: 'chart' },
     ];
 
     const currentPath = window.location.pathname;
@@ -34,7 +34,7 @@ function renderSidebar() {
         return `
             <li>
                 <a href="${link.href}" class="nav-link ${isActive ? 'active' : ''}">
-                    <span class="nav-icon">${link.icon}</span>
+                    <span class="nav-icon">${BomsIcons.icon(link.icon)}</span>
                     <span class="nav-label">${link.label}</span>
                 </a>
             </li>
@@ -48,7 +48,7 @@ function renderSidebar() {
 
             <!-- Logo / Brand -->
             <div class="sidebar-brand">
-                <div class="brand-flame">🔥</div>
+                <div class="brand-flame">${BomsIcons.icon('flame')}</div>
                 <div>
                     <div class="brand-name">BOMS</div>
                     <div class="brand-sub">EVA Gas Trading</div>

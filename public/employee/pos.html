@@ -128,7 +128,7 @@
         <h1 class="page-title" style="font-size:1.3rem;color:#fff;font-weight:700;">Point of Sale</h1>
         <p style="font-size:.78rem;color:var(--mist);" id="posDate"></p>
       </div>
-      <a href="/BOMS-EVAgas/public/employee/orders.html" style="font-size:.82rem;color:var(--mist);text-decoration:none;">View today's sales →</a>
+      <a href="/BOMS-EVAgas/public/employee/orders.html" style="font-size:.82rem;color:var(--mist);text-decoration:none;">View today's sales <span data-icon="arrowRight" aria-hidden="true"></span></a>
     </div>
 
     <!-- POS Body -->
@@ -139,7 +139,7 @@
         <div class="panel-header">
           <span class="panel-title">Products</span>
           <div class="search-wrap">
-            <span class="search-icon">⌕</span>
+            <span class="search-icon" data-icon="search" aria-hidden="true"></span>
             <input type="text" class="search-input" id="posSearch" placeholder="Search..." oninput="filterProducts()" />
           </div>
         </div>
@@ -151,13 +151,13 @@
       <!-- Right: Cart -->
       <div class="cart-panel">
         <div class="cart-header">
-          <span class="cart-title">🛒 Cart <span id="cartCount" style="font-size:.78rem;color:var(--mist);font-weight:400;"></span></span>
+          <span class="cart-title"><span data-icon="cart" aria-hidden="true"></span> Cart <span id="cartCount" style="font-size:.78rem;color:var(--mist);font-weight:400;"></span></span>
           <button class="cart-clear" onclick="clearCart()">Clear all</button>
         </div>
 
         <div class="cart-items" id="cartItems">
           <div class="cart-empty">
-            <span class="empty-icon">🛒</span>
+            <span class="empty-icon" data-icon="cart" aria-hidden="true"></span>
             <span>Tap a product to add it to the cart</span>
           </div>
         </div>
@@ -199,7 +199,7 @@
 <div class="modal-backdrop" id="receiptModal">
   <div class="receipt-box">
     <div class="receipt-header">
-      <div class="receipt-icon">✅</div>
+      <div class="receipt-icon" data-icon="check" aria-hidden="true"></div>
       <div class="receipt-title">Sale Complete!</div>
       <div class="receipt-subtitle" id="receiptBranch">EVA Gas Trading</div>
     </div>
@@ -227,6 +227,7 @@
 
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar_employee.js"></script>
 <script src="/BOMS-EVAgas/assets/js/employee/pos.js"></script>
 

@@ -87,9 +87,9 @@ function renderTable(products) {
         }[level];
 
         const levelLabel = {
-            out: '⛔ Out of stock',
-            low: '⚠️ Low stock',
-            ok:  '✅ In stock',
+            out: `${BomsIcons.icon('x')} Out of stock`,
+            low: `${BomsIcons.icon('alert')} Low stock`,
+            ok:  `${BomsIcons.icon('check')} In stock`,
         }[level];
 
         // Only allow adjustment when viewing own branch

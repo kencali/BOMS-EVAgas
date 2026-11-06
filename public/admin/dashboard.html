@@ -243,37 +243,44 @@
     <!-- ── Stat Cards ──────────────────────────────────────── -->
     <div class="stats-grid">
 
-      <div class="stat-card" id="stat-sales">
+      <div class="stat-card dashboard-kpi kpi-sales" id="stat-sales">
+        <span class="dashboard-kpi-icon" data-icon="receipt" aria-hidden="true"></span>
         <div class="stat-label">Total Sales</div>
         <div class="stat-value color-green">---</div>
       </div>
 
-      <div class="stat-card" id="stat-today-sales">
+      <div class="stat-card dashboard-kpi kpi-sales" id="stat-today-sales">
+        <span class="dashboard-kpi-icon" data-icon="wallet" aria-hidden="true"></span>
         <div class="stat-label">Today's Sales</div>
         <div class="stat-value color-green">---</div>
       </div>
 
-      <div class="stat-card" id="stat-expenses">
+      <div class="stat-card dashboard-kpi kpi-expenses" id="stat-expenses">
+        <span class="dashboard-kpi-icon" data-icon="wallet" aria-hidden="true"></span>
         <div class="stat-label">Total Expenses</div>
         <div class="stat-value color-red">---</div>
       </div>
 
-      <div class="stat-card" id="stat-income">
+      <div class="stat-card dashboard-kpi kpi-income" id="stat-income">
+        <span class="dashboard-kpi-icon" data-icon="chart" aria-hidden="true"></span>
         <div class="stat-label">Net Income</div>
         <div class="stat-value color-green">---</div>
       </div>
 
-      <div class="stat-card" id="stat-products">
+      <div class="stat-card dashboard-kpi kpi-products" id="stat-products">
+        <span class="dashboard-kpi-icon" data-icon="boxes" aria-hidden="true"></span>
         <div class="stat-label">Total Products</div>
         <div class="stat-value color-blue">---</div>
       </div>
 
-      <div class="stat-card" id="stat-employees">
+      <div class="stat-card dashboard-kpi kpi-employees" id="stat-employees">
+        <span class="dashboard-kpi-icon" data-icon="users" aria-hidden="true"></span>
         <div class="stat-label">Active Employees</div>
         <div class="stat-value color-amber">---</div>
       </div>
 
-      <div class="stat-card" id="stat-deliveries">
+      <div class="stat-card dashboard-kpi kpi-deliveries" id="stat-deliveries">
+        <span class="dashboard-kpi-icon" data-icon="truck" aria-hidden="true"></span>
         <div class="stat-label">Pending Deliveries</div>
         <div class="stat-value color-red">---</div>
       </div>
@@ -325,6 +332,7 @@
 <!-- Script load order matters: api → auth → sidebar → page logic -->
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/dashboard.js"></script>
 

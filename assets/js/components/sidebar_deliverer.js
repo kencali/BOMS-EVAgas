@@ -7,8 +7,8 @@ function renderSidebar() {
     const user = Auth.getUser();
 
     const navLinks = [
-        { href: '/BOMS-EVAgas/public/deliverer/dashboard.html',  label: 'Dashboard',        icon: '▦' },
-        { href: '/BOMS-EVAgas/public/deliverer/deliveries.html', label: 'My Deliveries',    icon: '🚴' },
+        { href: '/BOMS-EVAgas/public/deliverer/dashboard.html',  label: 'Dashboard',        icon: 'dashboard' },
+        { href: '/BOMS-EVAgas/public/deliverer/deliveries.html', label: 'My Deliveries',    icon: 'truck' },
     ];
 
     const currentPath = window.location.pathname;
@@ -18,7 +18,7 @@ function renderSidebar() {
         return `
             <li>
                 <a href="${link.href}" class="nav-link ${isActive ? 'active' : ''}">
-                    <span class="nav-icon">${link.icon}</span>
+                    <span class="nav-icon">${BomsIcons.icon(link.icon)}</span>
                     <span class="nav-label">${link.label}</span>
                 </a>
             </li>`;
@@ -29,7 +29,7 @@ function renderSidebar() {
     document.getElementById('sidebar').innerHTML = `
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-flame">🔥</div>
+                <div class="brand-flame">${BomsIcons.icon('flame')}</div>
                 <div>
                     <div class="brand-name">BOMS</div>
                     <div class="brand-sub">EVA Gas Trading</div>

@@ -139,19 +139,19 @@
     <!-- IDs: countPending, countOnTheWay, countDelivered, countCancelled -->
     <div class="status-counts">
       <div class="count-badge pending">
-        <span>🕐 Pending</span>
+        <span><span data-icon="clock" aria-hidden="true"></span> Pending</span>
         <span class="count-num" id="countPending">0</span>
       </div>
       <div class="count-badge otw">
-        <span>🚴 On the way</span>
+        <span><span data-icon="truck" aria-hidden="true"></span> On the way</span>
         <span class="count-num" id="countOnTheWay">0</span>
       </div>
       <div class="count-badge delivered">
-        <span>✅ Delivered</span>
+        <span><span data-icon="check" aria-hidden="true"></span> Delivered</span>
         <span class="count-num" id="countDelivered">0</span>
       </div>
       <div class="count-badge cancelled">
-        <span>✕ Cancelled</span>
+        <span><span data-icon="x" aria-hidden="true"></span> Cancelled</span>
         <span class="count-num" id="countCancelled">0</span>
       </div>
     </div>
@@ -167,7 +167,7 @@
       </select>
       <span class="count-label" id="deliveryCount"></span>
       <button class="btn-add" id="addDeliveryBtn" onclick="openAddModal()">
-        ＋ New Delivery
+        <span data-icon="plus" aria-hidden="true"></span> New Delivery
       </button>
     </div>
 
@@ -203,7 +203,7 @@
   <div class="modal-box">
     <div class="modal-header">
       <h3 class="modal-title" id="modalTitle">New Delivery</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close delivery form" data-icon="x"></button>
     </div>
 
     <form onsubmit="return false;">
@@ -277,7 +277,7 @@
 <!-- IDs used by deliveries.js: cancelModal, cancelDeliveryName, confirmCancelBtn -->
 <div class="modal-backdrop" id="cancelModal">
   <div class="modal-box small">
-    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-icon" data-icon="alert" aria-hidden="true"></div>
     <p class="confirm-msg">
       Cancel delivery for<br />
       <strong id="cancelDeliveryName"></strong>?<br />
@@ -298,6 +298,7 @@
 <!-- Script load order -->
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/deliveries.js"></script>
 </body>

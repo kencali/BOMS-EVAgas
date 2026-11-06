@@ -127,14 +127,14 @@
         <input type="date" id="dateFrom" class="date-input"/>
         <span class="ctrl-label">To</span>
         <input type="date" id="dateTo"   class="date-input"/>
-        <button class="btn-apply" onclick="loadActiveTab()">↻ Apply</button>
+        <button class="btn-apply" onclick="loadActiveTab()"><span data-icon="refresh" aria-hidden="true"></span> Apply</button>
       </div>
       <div id="periodControls" style="display:none;align-items:center;gap:.75rem;flex-wrap:wrap;">
         <span class="ctrl-label">Period From</span>
         <input type="date" id="periodStart" class="date-input"/>
         <span class="ctrl-label">To</span>
         <input type="date" id="periodEnd"   class="date-input"/>
-        <button class="btn-apply" onclick="loadActiveTab()">↻ Apply</button>
+        <button class="btn-apply" onclick="loadActiveTab()"><span data-icon="refresh" aria-hidden="true"></span> Apply</button>
       </div>
     </div>
 
@@ -144,11 +144,11 @@
       summary | sales | expenses | payroll | inventory
     -->
     <div class="tab-nav">
-      <button class="tab-btn active" data-tab="summary"   onclick="switchTab('summary')">📊 Overview</button>
-      <button class="tab-btn"        data-tab="sales"     onclick="switchTab('sales')">₱ Sales</button>
-      <button class="tab-btn"        data-tab="expenses"  onclick="switchTab('expenses')">⊖ Expenses</button>
-      <button class="tab-btn"        data-tab="payroll"   onclick="switchTab('payroll')">⊜ Payroll</button>
-      <button class="tab-btn"        data-tab="inventory" onclick="switchTab('inventory')">⊟ Inventory</button>
+      <button class="tab-btn active" data-tab="summary"   onclick="switchTab('summary')"><span data-icon="chart" aria-hidden="true"></span> Overview</button>
+      <button class="tab-btn"        data-tab="sales"     onclick="switchTab('sales')"><span data-icon="receipt" aria-hidden="true"></span> Sales</button>
+      <button class="tab-btn"        data-tab="expenses"  onclick="switchTab('expenses')"><span data-icon="wallet" aria-hidden="true"></span> Expenses</button>
+      <button class="tab-btn"        data-tab="payroll"   onclick="switchTab('payroll')"><span data-icon="wallet" aria-hidden="true"></span> Payroll</button>
+      <button class="tab-btn"        data-tab="inventory" onclick="switchTab('inventory')"><span data-icon="boxes" aria-hidden="true"></span> Inventory</button>
     </div>
 
     <!-- ══════════════════════════════════════════════════ -->
@@ -406,6 +406,7 @@
 <!-- Script load order: api → auth → sidebar → page logic -->
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/date-display.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/reports.js"></script>

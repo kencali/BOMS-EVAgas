@@ -14,6 +14,7 @@
   --green: #16803c;
   --red: #c9362b;
   --blue: #0879b9;
+  --purple: #7651a8;
   --border: rgba(40, 35, 29, .12);
   --border-mid: rgba(40, 35, 29, .18);
   --bg: #f6f4f0;
@@ -27,6 +28,10 @@
 
 html, body { background: var(--bg) !important; color: var(--text) !important; }
 body, body * { font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important; }
+.boms-icon { width: 1em; height: 1em; display: inline-block; vertical-align: -.14em; flex: 0 0 auto; }
+.boms-icon-wrap { display: inline-flex; align-items: center; justify-content: center; }
+.nav-icon .boms-icon { width: 1.05rem; height: 1.05rem; stroke-width: 1.9; }
+.btn-icon-only { display: inline-flex; align-items: center; justify-content: center; }
 .mono, .col-id, .stat-value, .kpi-value, .total-value, .tile-price, .qty-display, .ci-subtotal, .total-row .mono, .tendered-input, .change-val, .receipt-ref, .receipt-row .val, .detail-row .val, .sc-stock, .sc-price, .stock-qty, .stock-badge { font-family: 'Roboto Mono', 'Courier New', monospace !important; }
 body::before { background: radial-gradient(ellipse 60% 50% at 10% 90%, rgba(232,74,27,.10), transparent 65%), radial-gradient(ellipse 40% 60% at 90% 10%, rgba(255,159,10,.08), transparent 60%) !important; }
 .layout { background: var(--bg) !important; color: var(--text) !important; }
@@ -34,25 +39,77 @@ body::before { background: radial-gradient(ellipse 60% 50% at 10% 90%, rgba(232,
 .main-content::before, .main-content::after { content: ""; position: fixed; pointer-events: none; z-index: -1; border-radius: 50%; }
 .main-content::before { width: 24rem; height: 24rem; right: -10rem; top: 5rem; border: 1px solid rgba(232,74,27,.12); box-shadow: 0 0 0 2.8rem rgba(232,74,27,.025), 0 0 0 5.6rem rgba(232,74,27,.018); }
 .main-content::after { width: 15rem; height: 15rem; left: 10rem; bottom: -9rem; border: 1px solid rgba(185,103,0,.10); box-shadow: 0 0 0 2.2rem rgba(185,103,0,.018); }
-.sidebar { background: #fff !important; border-color: var(--border) !important; box-shadow: 2px 0 12px rgba(58,43,29,.04); }
+.sidebar { background: linear-gradient(180deg, #fff 0%, #fffaf7 100%) !important; border-color: var(--border) !important; box-shadow: 2px 0 18px rgba(58,43,29,.06); }
 .sidebar-brand, .sidebar-footer { border-color: var(--border) !important; }
 .brand-name, .user-name, .page-title, .panel-title, .card-title, .modal-title, .receipt-title, .customer-name, .product-name, .emp-name, .sc-name, .tile-name, .cart-title, .stat-value, .total-value, .kpi-value, .white, .kv-white, .ci-subtotal, .total-row.grand, .receipt-row.grand .val { color: var(--text) !important; }
 .brand-sub, .branch-badge, .user-role, .page-subtitle { color: var(--text-sub) !important; }
-.nav-link { color: var(--text-sub) !important; }
-.nav-link:hover { color: var(--text) !important; background: #fff5ef !important; }
-.nav-link.active { color: var(--flame) !important; background: #fff0e8 !important; }
+.nav-link { position: relative; color: var(--text-sub) !important; transition: color .16s ease, background .16s ease, transform .16s ease !important; }
+.nav-link:hover { color: var(--text) !important; background: #fff5ef !important; transform: translateX(2px); }
+.nav-link.active { color: var(--flame) !important; background: linear-gradient(90deg, #fff0e8, rgba(255,240,232,.25)) !important; }
+.nav-link.active::before { content: ''; position: absolute; left: 0; top: .45rem; bottom: .45rem; width: 3px; border-radius: 0 3px 3px 0; background: var(--flame); }
 
-.card, .stat-card, .kpi-card, .total-card, .period-panel, .quick-card, .stock-card, .product-tile, .cart-panel, .panel, .chart-card, .table-card, .modal-box, .receipt-box, .toast, .delivery-card { background: var(--card) !important; border-color: var(--border) !important; box-shadow: var(--shadow); }
-.quick-card:hover, .product-tile:hover { background: var(--card-hover) !important; }
+.card, .stat-card, .kpi-card, .total-card, .period-panel, .quick-card, .stock-card, .product-tile, .cart-panel, .panel, .chart-card, .table-card, .modal-box, .receipt-box, .toast, .delivery-card { background: linear-gradient(145deg, #fff 0%, #fffcfa 100%) !important; border-color: var(--border) !important; box-shadow: 0 6px 20px rgba(58,43,29,.07); }
+.stat-card, .kpi-card, .total-card, .quick-card, .stock-card, .product-tile, .delivery-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.quick-card:hover, .product-tile:hover, .stat-card:hover, .kpi-card:hover, .total-card:hover, .stock-card:hover, .delivery-card:hover { background: var(--card-hover) !important; border-color: rgba(232,74,27,.25) !important; box-shadow: 0 10px 24px rgba(58,43,29,.11); transform: translateY(-2px); }
 .cart-item, .card-notes { background: #faf8f5 !important; border-color: var(--border) !important; }
 .receipt-divider { border-color: var(--border) !important; }
 .cat-bar-track { background: #ece8e2 !important; }
 table thead th, .sales-table thead th, .delivery-table thead th, .payroll-table thead th, .report-table thead th { background: #faf8f5 !important; color: var(--text-sub) !important; border-color: var(--border) !important; }
 td, th, tr { border-color: var(--border) !important; }
+tbody tr { transition: background .15s ease; }
+tbody tr:hover { background: #fff8f3 !important; }
+
+/* Semantic highlights: stronger scanning cues without turning the workspace into a rainbow. */
+.stat-card, .kpi-card, .total-card { border-top: 3px solid #e7e1db !important; }
+#stat-sales, #stat-today-sales, .stat-card:has(#todaySales), .stat-card:has(#sumRevenue), .kpi-card:has(#sumRevenue), .kpi-card:has(#salesTotalRevenue), .kpi-card:has(#invValue) { border-top-color: var(--flame) !important; }
+#stat-expenses, .kpi-card:has(#sumExpenses), .kpi-card:has(#expTotal), .kpi-card:has(#payTotalDed) { border-top-color: var(--red) !important; }
+#stat-income, .stat-card:has(#todayCount), .kpi-card:has(#sumNetIncome), .kpi-card:has(#payTotalNet), .kpi-card:has(#invOk) { border-top-color: var(--green) !important; }
+#stat-products, .kpi-card:has(#salesTotalTx), .kpi-card:has(#invTotal) { border-top-color: var(--blue) !important; }
+#stat-employees, .kpi-card:has(#sumEmployees), .kpi-card:has(#payCount) { border-top-color: var(--purple) !important; }
+#stat-deliveries, .kpi-card:has(#sumDeliveries), .kpi-card:has(#invLow), .kpi-card:has(#invOut) { border-top-color: var(--amber) !important; }
+.color-green, .green, .stat-value.green { color: var(--green) !important; }
+.color-red { color: var(--red) !important; }
+.color-blue, .blue { color: var(--blue) !important; }
+.color-amber, .amber { color: var(--amber) !important; }
+.purple { color: var(--purple) !important; }
+.dashboard-kpi { position: relative; overflow: hidden; min-height: 128px !important; align-items: flex-start; gap: .42rem !important; }
+.dashboard-kpi-icon { display: inline-flex; width: 1.35rem; height: 1.35rem; align-items: center; justify-content: center; margin-bottom: .05rem; }
+.dashboard-kpi-icon .boms-icon { width: 1.2rem; height: 1.2rem; stroke-width: 2; }
+.dashboard-kpi .stat-label { color: currentColor !important; opacity: .82; }
+.dashboard-kpi .stat-value { color: currentColor !important; }
+.dashboard-kpi.kpi-sales { background: #fff5ef !important; color: #c7431b; border-top-color: #ef9b7b !important; }
+.dashboard-kpi.kpi-expenses { background: #fff2f2 !important; color: #bd4037; border-top-color: #e7aaa5 !important; }
+.dashboard-kpi.kpi-income { background: #eef9f1 !important; color: #18743a; border-top-color: #a8dabb !important; }
+.dashboard-kpi.kpi-products { background: #eff7ff !important; color: #176d9f; border-top-color: #afd4ed !important; }
+.dashboard-kpi.kpi-employees { background: #f5f0fb !important; color: #704e9c; border-top-color: #cdbce2 !important; }
+.dashboard-kpi.kpi-deliveries { background: #fff7e5 !important; color: #9b5a00; border-top-color: #eccb82 !important; }
+.dashboard-kpi:hover { filter: saturate(1.03); }
+.quick-card.primary { background: linear-gradient(135deg, #fff3ec 0%, #fffaf6 100%) !important; border-color: rgba(232,74,27,.28) !important; }
+.quick-card .q-icon, .quick-card .quick-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.35rem; height: 2.35rem; color: var(--flame); background: #fff0e8; border-radius: 9px; }
+.quick-card .q-icon .boms-icon, .quick-card .quick-icon .boms-icon { width: 1.35rem; height: 1.35rem; stroke-width: 1.9; }
+
+/* Consistent operational status and stock indicators. */
+.status-badge { font-weight: 700 !important; letter-spacing: .01em; }
+.count-badge .boms-icon, .level-badge .boms-icon, .filter-tab .boms-icon, .btn-add .boms-icon, .modal-close .boms-icon, .adjust-type-group label .boms-icon { width: .95rem; height: .95rem; vertical-align: -.16em; }
+.count-badge > span:first-child, .filter-tab, .btn-add { display: inline-flex; align-items: center; gap: .35rem; }
+.modal-close { display: inline-flex; align-items: center; justify-content: center; }
+.adjust-type-group label { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; }
+.status-badge.status-pending { background: #fff5dc !important; color: #9b5a00 !important; border-color: #f1ce83 !important; }
+.status-badge.status-otw { background: #eaf5fc !important; color: #08699f !important; border-color: #a9d7ee !important; }
+.status-badge.status-delivered { background: #eaf7ee !important; color: #18743a !important; border-color: #adddba !important; }
+.status-badge.status-cancelled, .status-badge.status-voided { background: #f8eeee !important; color: #a24b45 !important; border-color: #e4c2be !important; }
+.delivery-card.status-pending { border-left-color: var(--amber) !important; }
+.delivery-card.status-otw { border-left-color: var(--blue) !important; }
+.delivery-card.status-delivered { border-left-color: var(--green) !important; }
+.delivery-card.status-cancelled, .delivery-card.status-voided { border-left-color: #b48680 !important; }
+.stock-badge.stock-out, .level-badge.stock-out { background: #fbeceb !important; color: var(--red) !important; border-color: #edbbb6 !important; }
+.stock-badge.stock-low, .level-badge.stock-low { background: #fff5dc !important; color: #9b5a00 !important; border-color: #f1ce83 !important; }
+.stock-badge.stock-ok, .level-badge.stock-ok { background: #eaf7ee !important; color: var(--green) !important; border-color: #adddba !important; }
 
 input, select, textarea, .field-input, .search-input, .date-input, .period-input, .tendered-input, .filter-select { background: var(--input-bg) !important; color: var(--text) !important; border-color: var(--border) !important; }
 input::placeholder, textarea::placeholder { color: var(--text-muted) !important; }
 input:focus, select:focus, textarea:focus { border-color: var(--flame) !important; box-shadow: 0 0 0 3px rgba(232,74,27,.12) !important; }
+input:hover, select:hover, textarea:hover { border-color: rgba(232,74,27,.32) !important; }
 .date-display-control { display: inline-grid; position: relative; min-width: 148px; min-height: 2.45rem; vertical-align: middle; cursor: pointer; }
 .date-display-control::after { content: '📅'; position: absolute; right: .7rem; top: 50%; z-index: 0; font-size: .9rem; line-height: 1; transform: translateY(-50%); pointer-events: none; }
 .date-display-value { display: flex; align-items: center; width: 100%; padding: .6rem 2.35rem .6rem .9rem; color: var(--text-muted); background: var(--input-bg); border: 1px solid var(--border); border-radius: 9px; font-size: .85rem; pointer-events: none; }
@@ -65,10 +122,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--flame) !importan
 
 .status-cancelled, .status-badge.inactive, .count-badge.cancelled { background: #f1eeea !important; color: var(--text-sub) !important; border-color: var(--border) !important; }
 .modal-backdrop { background: rgba(34, 28, 22, .36) !important; }
+.modal-box { box-shadow: 0 20px 48px rgba(47,33,23,.18) !important; }
 .error-msg, .toast.error { background: #fff1f0 !important; }
+.toast.success { background: #edf9f0 !important; border-color: #adddba !important; color: #176d37 !important; }
+.toast.info { background: #edf7fc !important; border-color: #a9d7ee !important; color: #08699f !important; }
 .btn-logout { background: #fff3f1 !important; color: var(--red) !important; border-color: rgba(201,54,43,.2) !important; }
 .btn-logout:hover { background: #ffe7e4 !important; }
 .btn-add, .btn-submit, .btn-compute, .btn-checkout, .btn-login, .btn-new-sale { box-shadow: 0 5px 14px rgba(232,74,27,.20); }
+.btn-add:hover, .btn-submit:hover, .btn-compute:hover, .btn-checkout:hover, .btn-login:hover, .btn-new-sale:hover { box-shadow: 0 8px 18px rgba(232,74,27,.26); }
 
 /* The login is the single branded orange surface; application workspaces stay calm and light. */
 .brand-panel { position: relative; overflow: hidden; background: linear-gradient(145deg, #f45a23 0%, #e84a1b 58%, #c93b16 100%) !important; color: #fff !important; }
@@ -88,8 +149,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--flame) !importan
 .feature-item strong, .feature-item span { display: block; }
 .feature-item strong { font-size: .86rem; font-weight: 700; line-height: 1.2; }
 .feature-item div > span { margin-top: .24rem; font-size: .73rem; line-height: 1.55; color: rgba(255,255,255,.84); }
-.feature-icon-placeholder { width: 2.15rem; height: 2.15rem; border: 1.5px dashed rgba(255,255,255,.78); border-radius: .48rem; position: relative; }
-.feature-icon-placeholder::before { content: ''; position: absolute; inset: .48rem; border: 1px solid rgba(255,255,255,.68); border-radius: .2rem; }
+.feature-icon { width: 2.35rem; height: 2.35rem; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+.feature-icon .boms-icon { width: 2.2rem; height: 2.2rem; stroke-width: 1.85; }
 
 @media (max-width: 1500px) {
   .gas-cylinder { width: 17rem; opacity: .96; }

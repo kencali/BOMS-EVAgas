@@ -117,10 +117,10 @@ function renderChart({ labels, totals }) {
             datasets: [{
                 label: 'Monthly Sales (₱)',
                 data: totals,
-                borderColor: '#FF4B1F',
-                backgroundColor: 'rgba(255,75,31,.08)',
+                borderColor: '#e84a1b',
+                backgroundColor: 'rgba(232,74,27,.10)',
                 borderWidth: 2.5,
-                pointBackgroundColor: '#FF4B1F',
+                pointBackgroundColor: '#e84a1b',
                 pointRadius: 4,
                 pointHoverRadius: 6,
                 tension: 0.4,
@@ -132,7 +132,7 @@ function renderChart({ labels, totals }) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    labels: { color: '#9E9B92', font: { family: 'Sora', size: 12 } }
+                    labels: { color: '#6b6860', font: { family: 'Inter', size: 12 } }
                 },
                 tooltip: {
                     callbacks: {
@@ -142,16 +142,16 @@ function renderChart({ labels, totals }) {
             },
             scales: {
                 x: {
-                    ticks: { color: '#9E9B92', font: { family: 'Sora', size: 11 } },
-                    grid:  { color: 'rgba(40,35,29,.10)' }
+                    ticks: { color: '#6b6860', font: { family: 'Inter', size: 11 } },
+                    grid:  { color: 'rgba(40,35,29,.08)' }
                 },
                 y: {
                     ticks: {
-                        color: '#9E9B92',
-                        font:  { family: 'Sora', size: 11 },
+                        color: '#6b6860',
+                        font:  { family: 'Inter', size: 11 },
                         callback: val => '₱' + Number(val).toLocaleString()
                     },
-                    grid: { color: 'rgba(40,35,29,.10)' }
+                    grid: { color: 'rgba(40,35,29,.08)' }
                 }
             }
         }
@@ -163,7 +163,7 @@ function renderLowStock(items) {
     const tbody = document.getElementById('lowStockBody');
     if (!items.length) {
         tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#9E9B92;padding:1.5rem;">
-            No low stock items 👍</td></tr>`;
+            No low stock items.</td></tr>`;
         return;
     }
     tbody.innerHTML = items.map(item => `

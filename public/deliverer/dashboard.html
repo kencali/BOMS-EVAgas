@@ -35,7 +35,7 @@
   <main class="main-content">
 
     <div class="header-row">
-      <h1 class="page-title" id="greeting">Hello! 👋</h1>
+      <h1 class="page-title" id="greeting">Hello!</h1>
       <p class="page-subtitle" id="dateLabel"></p>
     </div>
 
@@ -57,7 +57,7 @@
 
     <!-- Quick link -->
     <a href="/BOMS-EVAgas/public/deliverer/deliveries.html" class="quick-card">
-      <span class="quick-icon">🚴</span>
+      <span class="quick-icon" data-icon="truck" aria-hidden="true"></span>
       <div>
         <div class="quick-label">View My Deliveries</div>
         <div class="quick-desc">See all assigned routes and update status</div>
@@ -69,6 +69,7 @@
 
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar_deliverer.js"></script>
 <script>
 Auth.guard(['deliverer']);
@@ -92,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const h    = new Date().getHours();
     const name = user.name?.split(' ')[0] || 'there';
     document.getElementById('greeting').textContent =
-        (h < 12 ? '🌅 Good morning' : h < 17 ? '☀️ Good afternoon' : '🌙 Good evening') + `, ${name}`;
+        (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + `, ${name}`;
     document.getElementById('dateLabel').textContent =
         new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
     loadStats();

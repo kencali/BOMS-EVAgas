@@ -101,14 +101,14 @@ const CHART_DEFAULTS = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { labels: { color: '#9E9B92', font: { family: 'Sora', size: 11 } } }
+        legend: { labels: { color: '#6b6860', font: { family: 'Inter', size: 11 } } }
     },
     scales: {
-        x: { ticks: { color: '#9E9B92', font: { family: 'Sora', size: 10 } },
-              grid: { color: 'rgba(40,35,29,.10)' } },
-        y: { ticks: { color: '#9E9B92', font: { family: 'Sora', size: 10 },
+        x: { ticks: { color: '#6b6860', font: { family: 'Inter', size: 10 } },
+              grid: { color: 'rgba(40,35,29,.08)' } },
+        y: { ticks: { color: '#6b6860', font: { family: 'Inter', size: 10 },
                        callback: v => '₱' + Number(v).toLocaleString() },
-              grid: { color: 'rgba(40,35,29,.10)' } },
+              grid: { color: 'rgba(40,35,29,.08)' } },
     }
 };
 
@@ -168,8 +168,8 @@ async function loadSummary() {
                 datasets: [{
                     label: 'Monthly Revenue',
                     data:  data.chart_revenue,
-                    backgroundColor: 'rgba(255,75,31,.35)',
-                    borderColor:     '#FF4B1F',
+                    backgroundColor: 'rgba(232,74,27,.32)',
+                    borderColor:     '#e84a1b',
                     borderWidth:     2,
                     borderRadius:    6,
                 }]
@@ -212,8 +212,8 @@ async function loadSalesReport() {
                 datasets: [{
                     label:           'Revenue',
                     data:            data.monthly.map(m => parseFloat(m.revenue)),
-                    borderColor:     '#FF4B1F',
-                    backgroundColor: 'rgba(255,75,31,.08)',
+                    borderColor:     '#e84a1b',
+                    backgroundColor: 'rgba(232,74,27,.10)',
                     borderWidth:     2.5,
                     pointRadius:     4,
                     tension:         0.4,
@@ -256,7 +256,7 @@ async function loadExpensesReport() {
                 labels:   data.by_category.map(c => c.category),
                 datasets: [{
                     data:            data.by_category.map(c => parseFloat(c.subtotal)),
-                    backgroundColor: ['#FF4B1F','#FF9F0A','#5AC8FA','#34C759','#9E9B92'],
+                    backgroundColor: ['#c9362b','#e9a523','#0879b9','#16803c','#7651a8','#8b867e'],
                     borderWidth:     0,
                 }]
             },
@@ -264,7 +264,7 @@ async function loadExpensesReport() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'right', labels: { color: '#9E9B92', font: { family: 'Sora', size: 11 } } },
+                    legend: { position: 'right', labels: { color: '#6b6860', font: { family: 'Inter', size: 11 } } },
                     tooltip: { callbacks: { label: c => ' ' + peso(c.raw) } }
                 }
             }

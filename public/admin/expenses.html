@@ -139,7 +139,7 @@
       <input type="date" id="dateFrom" class="date-input"/>
       <label style="font-size:.78rem;color:var(--mist);">To</label>
       <input type="date" id="dateTo"   class="date-input"/>
-      <button class="btn-filter" onclick="loadExpenses()">↻ Apply</button>
+      <button class="btn-filter" onclick="loadExpenses()"><span data-icon="refresh" aria-hidden="true"></span> Apply</button>
       <span class="total-label">Total: <strong id="totalExpenses">—</strong></span>
       <span class="count-label" id="expenseCount"></span>
       <button class="btn-add" id="addExpenseBtn" onclick="openAddModal()">＋ Add Expense</button>
@@ -225,7 +225,7 @@
 <!-- Delete Confirm Modal -->
 <div class="modal-backdrop" id="deleteModal">
   <div class="modal-box small">
-    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-icon" data-icon="trash" aria-hidden="true"></div>
     <p class="confirm-msg">
       Delete expense:<br/>
       <strong id="deleteExpenseDesc"></strong>?<br/>
@@ -241,6 +241,7 @@
 <div class="toast" id="toast"></div>
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/date-display.js"></script>
 <script src="/BOMS-EVAgas/assets/js/admin/expenses.js"></script>

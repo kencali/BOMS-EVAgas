@@ -47,7 +47,7 @@
   <main class="main-content">
 
     <div class="header-row">
-      <h1 class="page-title" id="greeting">Good morning 👋</h1>
+      <h1 class="page-title" id="greeting">Good morning</h1>
       <p class="page-subtitle" id="dateLabel"></p>
     </div>
 
@@ -66,17 +66,17 @@
     <!-- Quick actions -->
     <div class="quick-grid">
       <a href="/BOMS-EVAgas/public/employee/pos.html" class="quick-card primary">
-        <span class="q-icon">🧾</span>
+        <span class="q-icon" data-icon="cart" aria-hidden="true"></span>
         <span class="q-label">New Sale</span>
         <span class="q-desc">Open the Point of Sale</span>
       </a>
       <a href="/BOMS-EVAgas/public/employee/orders.html" class="quick-card">
-        <span class="q-icon">📋</span>
+        <span class="q-icon" data-icon="receipt" aria-hidden="true"></span>
         <span class="q-label">Today's Sales</span>
         <span class="q-desc">View sales you've made</span>
       </a>
       <a href="/BOMS-EVAgas/public/employee/inventory.html" class="quick-card">
-        <span class="q-icon">📦</span>
+        <span class="q-icon" data-icon="boxes" aria-hidden="true"></span>
         <span class="q-label">Stock Levels</span>
         <span class="q-desc">Check current inventory</span>
       </a>
@@ -98,6 +98,7 @@
 
 <script src="/BOMS-EVAgas/assets/js/api.js"></script>
 <script src="/BOMS-EVAgas/assets/js/auth.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar_employee.js"></script>
 <script src="/BOMS-EVAgas/assets/js/employee/dashboard.js"></script>
 
