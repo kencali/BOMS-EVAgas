@@ -82,6 +82,7 @@ function renderSidebar() {
 
         </aside>
     `;
+    BomsMobileNavigation.init();
 }
 
 // CSS for sidebar — injected once so every page gets it automatically
@@ -92,6 +93,12 @@ function renderSidebar() {
         theme.rel = 'stylesheet';
         theme.href = '/BOMS-EVAgas/assets/css/light-theme.css';
         document.head.appendChild(theme);
+    }
+    if (!document.querySelector('link[href*="/assets/css/responsive.css"]')) {
+        const responsive = document.createElement('link');
+        responsive.rel = 'stylesheet';
+        responsive.href = '/BOMS-EVAgas/assets/css/responsive.css';
+        document.head.appendChild(responsive);
     }
     const style = document.createElement('style');
     style.textContent = `

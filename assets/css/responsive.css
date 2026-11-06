@@ -1,0 +1,94 @@
+/* UI-002: shared responsive behavior. Desktop presentation remains unchanged. */
+html { overflow-x: hidden; }
+body { min-width: 0; overflow-x: hidden; }
+img, svg, canvas { max-width: 100%; }
+button, input, select, textarea { max-width: 100%; }
+.mobile-nav-shell { display: none; }
+
+@media (max-width: 1024px) {
+  .main-content { padding: 1.5rem !important; max-width: calc(100vw - 220px) !important; }
+  .sidebar { width: 220px !important; min-width: 220px !important; }
+  .header-row, .page-header { gap: 1rem; }
+  .branch-switcher, .toolbar, .period-panel, .date-range, .report-controls { row-gap: .65rem; }
+}
+
+@media (max-width: 768px) {
+  body.boms-nav-open { overflow: hidden; }
+  .layout { display: block !important; min-height: 100dvh; }
+  .layout > #sidebar { display: none !important; }
+  .main-content { width: 100%; max-width: none !important; min-width: 0; padding: 1rem !important; overflow: visible !important; }
+  .main-content::before, .main-content::after { display: none; }
+  .mobile-nav-shell { display: block; }
+  .mobile-topbar { position: sticky; top: 0; z-index: 90; height: 3.8rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .65rem 1rem; background: rgba(255,255,255,.96); border-bottom: 1px solid var(--border); box-shadow: 0 2px 12px rgba(58,43,29,.06); backdrop-filter: blur(10px); }
+  .mobile-brand { display: inline-flex; align-items: center; gap: .55rem; min-width: 0; color: var(--text); text-decoration: none; }
+  .mobile-brand-icon { color: var(--flame); display: inline-flex; }
+  .mobile-brand-icon .boms-icon { width: 1.35rem; height: 1.35rem; }
+  .mobile-brand strong, .mobile-brand small { display: block; line-height: 1.05; }
+  .mobile-brand strong { font-size: .9rem; letter-spacing: .05em; }
+  .mobile-brand small { margin-top: .16rem; color: var(--text-sub); font-size: .61rem; text-transform: uppercase; letter-spacing: .05em; }
+  .mobile-nav-toggle { min-height: 2.55rem; display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; color: var(--flame); background: #fff5ef; border: 1px solid rgba(232,74,27,.22); border-radius: 9px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+  .mobile-nav-toggle .boms-icon { width: 1rem; height: 1rem; }
+  .mobile-nav-backdrop { position: fixed; inset: 0; z-index: 100; display: none; border: 0; background: rgba(32,25,19,.38); }
+  .mobile-nav-drawer { position: fixed; z-index: 101; top: 0; bottom: 0; left: 0; width: min(84vw, 320px); transform: translateX(-105%); transition: transform .2s ease; box-shadow: 12px 0 28px rgba(32,25,19,.18); }
+  .boms-nav-open .mobile-nav-backdrop { display: block; }
+  .boms-nav-open .mobile-nav-drawer { transform: translateX(0); }
+  .mobile-sidebar-content.sidebar { display: flex !important; width: 100% !important; min-width: 0 !important; height: 100%; padding-top: 1.2rem; position: static !important; box-shadow: none !important; }
+  .header-row, .page-header { align-items: flex-start !important; margin-bottom: 1.25rem !important; }
+  .page-title { font-size: clamp(1.3rem, 6vw, 1.55rem) !important; }
+  .page-subtitle { line-height: 1.45; }
+  .branch-switcher { width: 100%; }
+  .branch-btn { min-height: 2.45rem; }
+  .toolbar, .period-panel, .date-range, .report-controls { align-items: stretch !important; }
+  .toolbar > *, .period-panel > *, .date-range > *, .report-controls > * { min-width: 0; }
+  .filter-select, .search-wrap, .search-input, .date-display-control { max-width: none !important; }
+  .card, .table-card { max-width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .card table, .table-card table { min-width: max-content; }
+  .modal-backdrop { padding: .75rem !important; align-items: flex-end !important; }
+  .modal-box, .receipt-box { width: 100% !important; max-width: 100% !important; max-height: calc(100dvh - 1.5rem) !important; padding: 1.25rem !important; overflow-y: auto !important; border-radius: 14px !important; }
+  .form-row, .content-split, .report-split, .bottom-row { grid-template-columns: 1fr !important; }
+  .form-row { gap: 0 !important; }
+  /* Compact metric groups use the space that is actually available. This yields
+     3–4 columns on tablets, two readable columns on typical phones, and one
+     column only when a 320px viewport cannot support two cards safely. */
+  .stats-grid, .summary-grid, .summary-row, .totals-row, .kpi-grid, .stats-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: .75rem !important; }
+  .stat-card, .summary-card, .kpi-card, .total-card { min-width: 0; }
+  .dashboard-kpi { min-height: 116px !important; padding: 1rem !important; }
+  .dashboard-kpi .stat-value { font-size: clamp(1.15rem, 5vw, 1.55rem) !important; overflow-wrap: anywhere; }
+  .chart-wrap { min-height: 230px; height: min(62vw, 300px) !important; }
+  .pos-layout { height: auto !important; min-height: 0 !important; grid-template-columns: 1fr !important; }
+  .products-panel { overflow: visible !important; }
+  .product-grid { max-height: none !important; min-height: 260px; overflow: visible !important; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important; }
+  .cart-panel { height: auto !important; min-height: 360px; }
+  .cart-items { max-height: 38dvh; }
+  .btn-checkout { position: sticky; bottom: .5rem; z-index: 2; min-height: 3rem; }
+  .delivery-cards { gap: .7rem !important; }
+  .delivery-card { padding: 1rem !important; }
+  .card-info { grid-template-columns: 1fr !important; gap: .55rem !important; }
+  .address, .customer-address { white-space: normal !important; max-width: none !important; overflow: visible !important; }
+  .btn-action, .btn-add, .btn-submit, .btn-confirm-cancel, .btn-cancel-modal { min-height: 2.6rem; }
+  .page { min-height: 100dvh !important; }
+  .page .brand-panel { display: block !important; min-height: 0 !important; padding: 1.35rem 1.25rem !important; }
+  .page .brand-panel h1 { margin: 0 !important; max-width: none !important; font-size: clamp(2rem, 11vw, 3rem) !important; line-height: 1.02 !important; }
+  .page .brand-panel .eyebrow, .page .brand-panel .tagline { margin-bottom: .65rem !important; }
+  .page .brand-panel p, .page .brand-panel .feature-list { display: none !important; }
+  .page .form-panel { min-height: 0 !important; padding: 1rem !important; }
+}
+
+@media (max-width: 430px) {
+  .main-content { padding: .85rem !important; }
+  .mobile-topbar { padding-inline: .85rem; }
+  .mobile-menu-label { display: none; }
+  .mobile-nav-toggle { min-width: 2.55rem; justify-content: center; padding-inline: .6rem; }
+  /* At this range auto-fit retains two columns where there is room. */
+  .stats-grid, .summary-grid, .summary-row, .totals-row, .kpi-grid, .stats-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; }
+  .status-counts { gap: .5rem !important; }
+  .count-badge { padding: .4rem .65rem !important; }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .6rem !important; }
+  .adjust-type-group { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 340px) {
+  /* 320px screens have roughly 288px of content width after gutters. */
+  .stats-grid, .summary-grid, .summary-row, .totals-row, .kpi-grid, .stats-row { grid-template-columns: 1fr !important; }
+  .dashboard-kpi { min-height: 104px !important; }
+}

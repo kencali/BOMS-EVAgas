@@ -53,6 +53,7 @@ function renderSidebar() {
                 <button class="btn-logout" onclick="Auth.logout()">Sign out</button>
             </div>
         </aside>`;
+    BomsMobileNavigation.init();
 }
 
 (function injectSidebarStyles() {
@@ -62,6 +63,12 @@ function renderSidebar() {
         theme.rel = 'stylesheet';
         theme.href = '/BOMS-EVAgas/assets/css/light-theme.css';
         document.head.appendChild(theme);
+    }
+    if (!document.querySelector('link[href*="/assets/css/responsive.css"]')) {
+        const responsive = document.createElement('link');
+        responsive.rel = 'stylesheet';
+        responsive.href = '/BOMS-EVAgas/assets/css/responsive.css';
+        document.head.appendChild(responsive);
     }
     const style = document.createElement('style');
     style.textContent = `
