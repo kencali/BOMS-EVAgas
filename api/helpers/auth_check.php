@@ -16,6 +16,7 @@
 
 require_once __DIR__ . '/../helpers/jwt.php';
 require_once __DIR__ . '/../helpers/response.php';
+require_once __DIR__ . '/../config/database.php';
 
 function requireAuth(string|array $roles = []): array {
     $token = getTokenFromHeader();
@@ -28,6 +29,22 @@ function requireAuth(string|array $roles = []): array {
 
     if (!$user) {
         sendError('Invalid or expired token. Please login again.', 401);
+    }
+
+    // JWTs are signed, but their claims can become stale after an account is disabled,
+    // reassigned to a branch, or has its role changed. Re-check the current server record.
+    $db = getDB();
+    $accountStmt = $db->prepare(
+        "SELECT id, role, branch_id, status, token_version
+         FROM users WHERE id = ? LIMIT 1"
+    );
+    $accountStmt->execute([(int)$user['user_id']]);
+    $account = $accountStmt->fetch();
+    if (!$account || $account['status'] !== 'Active'
+        || $account['role'] !== $user['role']
+        || (int)$account['branch_id'] !== (int)$user['branch_id']
+        || (int)$account['token_version'] !== (int)($user['token_version'] ?? -1)) {
+        sendError('Account is no longer authorized. Please login again.', 401);
     }
 
     // If roles are specified, check if user has the right role
@@ -53,12 +70,17 @@ function requireAuth(string|array $roles = []): array {
 // ============================================================
 
 function requireBranchAccess(array $user, int $requestedBranch, string $mode = 'read'): void {
+    if ($requestedBranch <= 0) {
+        sendError('Invalid branch.', 400);
+    }
     $isOwnBranch = ($user['branch_id'] === $requestedBranch);
 
     if ($mode === 'write' && !$isOwnBranch) {
         sendError('You can only modify data for your own branch.', 403);
     }
 
-    // 'read' mode: both own and other branch are allowed
-    // (the calling file decides what data to return)
+    // Cross-branch read-only analytics are an explicitly admin-only exception.
+    if ($mode === 'read' && !$isOwnBranch && $user['role'] !== 'admin') {
+        sendError('You can only view data from your own branch.', 403);
+    }
 }

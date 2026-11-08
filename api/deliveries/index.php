@@ -164,6 +164,7 @@ function completeDelivery(PDO $db, int $deliveryId, array $user): array {
 if ($method === 'GET' && isset($_GET['deliverers'])) {
     $user     = requireAuth(['admin', 'employee']);
     $branchId = isset($_GET['branch_id']) ? (int)$_GET['branch_id'] : $user['branch_id'];
+    requireBranchAccess($user, $branchId, 'read');
 
     $stmt = $db->prepare("
         SELECT id, full_name
@@ -200,6 +201,9 @@ if ($method === 'GET' && isset($_GET['id'])) {
             d.customer_name,
             d.customer_phone,
             d.customer_address,
+            d.latitude,
+            d.longitude,
+            d.location_confirmed,
             d.product_id,
             d.quantity,
             d.delivery_status,
@@ -267,6 +271,9 @@ if ($method === 'GET') {
             d.customer_name,
             d.customer_phone,
             d.customer_address,
+            d.latitude,
+            d.longitude,
+            d.location_confirmed,
             d.product_id,
             d.quantity,
             d.delivery_status,

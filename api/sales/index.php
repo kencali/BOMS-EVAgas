@@ -88,7 +88,8 @@ if ($method === 'GET') {
         FROM sales s
         LEFT JOIN users u ON u.id = s.created_by
         WHERE s.branch_id = ?
-          AND DATE(s.sale_date) BETWEEN ? AND ?
+          AND s.sale_date >= ?
+          AND s.sale_date < DATE_ADD(?, INTERVAL 1 DAY)
         ORDER BY s.sale_date DESC
         LIMIT 300
     ");
@@ -98,7 +99,9 @@ if ($method === 'GET') {
     $totStmt = $db->prepare("
         SELECT COUNT(*) AS count, COALESCE(SUM(total_amount), 0) AS total
         FROM sales
-        WHERE branch_id = ? AND DATE(sale_date) BETWEEN ? AND ?
+        WHERE branch_id = ?
+          AND sale_date >= ?
+          AND sale_date < DATE_ADD(?, INTERVAL 1 DAY)
     ");
     $totStmt->execute([$branchId, $dateFrom, $dateTo]);
     $totals = $totStmt->fetch();
@@ -124,8 +127,9 @@ if ($method === 'POST') {
     if (empty($items))        sendError('Cart is empty.');
     if ($amountTendered <= 0) sendError('Amount tendered must be greater than zero.');
 
-    $totalAmount = 0;
-    $lineItems   = [];
+    // Accept and validate the requested cart first. Authoritative product details,
+    // including stock and prices, are loaded under transaction locks below.
+    $requestedItems = [];
 
     foreach ($items as $item) {
         $productId = (int)($item['product_id'] ?? 0);
@@ -134,59 +138,54 @@ if ($method === 'POST') {
         $useExchangePrice = ($saleType === 'exchange') && !empty($item['use_exchange']);
 
         if ($productId <= 0 || $quantity <= 0) sendError('Invalid item in cart.');
-
-        $pStmt = $db->prepare("
-            SELECT id, product_name, price, exchange_price, stock
-            FROM products
-            WHERE id = ? AND branch_id = ? AND status = 'Active'
-        ");
-        $pStmt->execute([$productId, $user['branch_id']]);
-        $product = $pStmt->fetch();
-
-        if (!$product) sendError("Product ID $productId not found.");
-        if ($product['stock'] < $quantity) {
-            sendError("Not enough stock for \"{$product['product_name']}\". Available: {$product['stock']}.");
+        $key = $productId . ':' . (int)$useExchangePrice;
+        if (!isset($requestedItems[$key])) {
+            $requestedItems[$key] = ['product_id' => $productId, 'quantity' => 0, 'use_exchange' => $useExchangePrice];
         }
-
-        // Use exchange price if available and selected, otherwise regular price
-        $unitPrice = ($useExchangePrice && $product['exchange_price'])
-            ? (float)$product['exchange_price']
-            : (float)$product['price'];
-
-        $subtotal     = $unitPrice * $quantity;
-        $totalAmount += $subtotal;
-
-        $lineItems[] = [
-            'product_id' => $productId,
-            'quantity'   => $quantity,
-            'unit_price' => $unitPrice,
-            'subtotal'   => $subtotal,
-            'stock'      => $product['stock'],
-        ];
+        $requestedItems[$key]['quantity'] += $quantity;
     }
-
-    if ($amountTendered < $totalAmount) {
-        sendError(sprintf('Amount tendered (₱%.2f) is less than total (₱%.2f).', $amountTendered, $totalAmount));
-    }
-
-    $changeAmount = $amountTendered - $totalAmount;
-
-    // Generate unique reference number: BOMS-YYYYMMDD-XXXX
-    // We use a loop in case of the rare same-second collision
-    $referenceNo = null;
-    for ($attempt = 0; $attempt < 5; $attempt++) {
-        $candidate = 'BOMS-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        $checkRef  = $db->prepare("SELECT id FROM sales WHERE reference_no = ?");
-        $checkRef->execute([$candidate]);
-        if (!$checkRef->fetch()) {
-            $referenceNo = $candidate;
-            break;
-        }
-    }
-    if (!$referenceNo) sendError('Could not generate reference number. Try again.', 500);
 
     $db->beginTransaction();
     try {
+        $totalAmount = 0;
+        $lineItems = [];
+        $productStmt = $db->prepare("SELECT id, product_name, price, exchange_price, stock
+            FROM products WHERE id = ? AND branch_id = ? AND status = 'Active' FOR UPDATE");
+
+        // Lock every product row and recheck the aggregate requested quantity before a sale exists.
+        foreach ($requestedItems as $request) {
+            $productStmt->execute([$request['product_id'], $user['branch_id']]);
+            $product = $productStmt->fetch();
+            if (!$product) {
+                throw new RuntimeException('A product in the cart is unavailable.');
+            }
+            if ((int)$product['stock'] < $request['quantity']) {
+                throw new RuntimeException("Not enough stock for \"{$product['product_name']}\". Available: {$product['stock']}.");
+            }
+            $unitPrice = ($request['use_exchange'] && $product['exchange_price'])
+                ? (float)$product['exchange_price'] : (float)$product['price'];
+            $subtotal = $unitPrice * $request['quantity'];
+            $totalAmount += $subtotal;
+            $lineItems[] = [
+                'product_id' => $request['product_id'], 'quantity' => $request['quantity'],
+                'unit_price' => $unitPrice, 'subtotal' => $subtotal,
+            ];
+        }
+
+        if ($amountTendered < $totalAmount) {
+            throw new RuntimeException(sprintf('Amount tendered (₱%.2f) is less than total (₱%.2f).', $amountTendered, $totalAmount));
+        }
+        $changeAmount = $amountTendered - $totalAmount;
+
+        $referenceNo = null;
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $candidate = 'BOMS-' . date('Ymd') . '-' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+            $checkRef = $db->prepare('SELECT id FROM sales WHERE reference_no = ? FOR UPDATE');
+            $checkRef->execute([$candidate]);
+            if (!$checkRef->fetch()) { $referenceNo = $candidate; break; }
+        }
+        if (!$referenceNo) throw new RuntimeException('Could not generate reference number. Try again.');
+
         $saleStmt = $db->prepare("
             INSERT INTO sales
                 (reference_no, branch_id, total_amount, amount_tendered,
@@ -209,12 +208,16 @@ if ($method === 'POST') {
             VALUES (?, ?, ?, ?, ?)
         ");
         $stockStmt = $db->prepare("
-            UPDATE products SET stock = stock - ? WHERE id = ?
+            UPDATE products SET stock = stock - ?
+            WHERE id = ? AND branch_id = ? AND stock >= ?
         ");
 
         foreach ($lineItems as $li) {
             $itemStmt->execute([$saleId, $li['product_id'], $li['quantity'], $li['unit_price'], $li['subtotal']]);
-            $stockStmt->execute([$li['quantity'], $li['product_id']]);
+            $stockStmt->execute([$li['quantity'], $li['product_id'], $user['branch_id'], $li['quantity']]);
+            if ($stockStmt->rowCount() !== 1) {
+                throw new RuntimeException('Stock changed while processing this sale. Please try again.');
+            }
         }
 
         $db->commit();
@@ -228,9 +231,12 @@ if ($method === 'POST') {
             'sale_type'      => $saleType,
         ], 201);
 
-    } catch (Exception $e) {
-        $db->rollBack();
-        sendError('Sale could not be saved. Please try again.', 500);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        $status = $e instanceof RuntimeException ? 400 : 500;
+        $message = $e instanceof RuntimeException ? $e->getMessage() : 'Sale could not be saved. Please try again.';
+        error_log($status === 500 ? 'BOMS sale transaction failed.' : 'BOMS sale rejected during stock validation.');
+        sendError($message, $status);
     }
 }
 

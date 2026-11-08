@@ -20,6 +20,7 @@ function renderSidebar() {
         { href: '/BOMS-EVAgas/public/admin/inventory.html',  label: 'Inventory',  icon: 'boxes' },
         { href: '/BOMS-EVAgas/public/admin/sales.html',      label: 'Sales',      icon: 'receipt' },
         { href: '/BOMS-EVAgas/public/admin/deliveries.html', label: 'Deliveries', icon: 'truck' },
+        { href: '/BOMS-EVAgas/public/admin/routes.html',     label: 'Route Planning', icon: 'map' },
         { href: '/BOMS-EVAgas/public/admin/pos.html', label: 'Point of Sale', icon: 'cart' },
         { href: '/BOMS-EVAgas/public/admin/employees.html',  label: 'Employees',  icon: 'users' },
         { href: '/BOMS-EVAgas/public/admin/payroll.html',    label: 'Payroll',    icon: 'wallet' },
@@ -44,7 +45,7 @@ function renderSidebar() {
     const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · Legazpi';
 
     document.getElementById('sidebar').innerHTML = `
-        <aside class="sidebar">
+        <aside class="sidebar boms-role-sidebar admin-sidebar">
 
             <!-- Logo / Brand -->
             <div class="sidebar-brand">
@@ -99,6 +100,12 @@ function renderSidebar() {
         responsive.rel = 'stylesheet';
         responsive.href = '/BOMS-EVAgas/assets/css/responsive.css';
         document.head.appendChild(responsive);
+    }
+    if (!document.querySelector('link[href*="/assets/css/components/role-sidebar.css"]')) {
+        const roleSidebar = document.createElement('link');
+        roleSidebar.rel = 'stylesheet';
+        roleSidebar.href = '/BOMS-EVAgas/assets/css/components/role-sidebar.css';
+        document.head.appendChild(roleSidebar);
     }
     const style = document.createElement('style');
     style.textContent = `

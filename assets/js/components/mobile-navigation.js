@@ -4,7 +4,10 @@ const BomsMobileNavigation = (() => {
     function close() {
         document.body.classList.remove('boms-nav-open');
         const button = document.querySelector('.mobile-nav-toggle');
-        if (button) button.setAttribute('aria-expanded', 'false');
+        if (button) {
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Open navigation');
+        }
     }
 
     function init() {
@@ -40,6 +43,7 @@ const BomsMobileNavigation = (() => {
         toggle.addEventListener('click', () => {
             const isOpen = document.body.classList.toggle('boms-nav-open');
             toggle.setAttribute('aria-expanded', String(isOpen));
+            toggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
         });
         shell.querySelector('.mobile-nav-backdrop').addEventListener('click', close);
         drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', close));

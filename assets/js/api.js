@@ -10,7 +10,20 @@
 //   - Returns the response data or throws an error
 // ============================================================
 
-const API_BASE = '/BOMS-EVAgas/api'; // all API calls start with /api
+// Works both for local XAMPP (/BOMS-EVAgas/public/...) and a production site
+// whose document root is public/ (/...). A page may set data-api-base on <html>
+// when a hosting layout needs an explicit application prefix.
+const API_BASE = (() => {
+    const configured = document.documentElement.dataset.apiBase;
+    if (configured) return `${configured.replace(/\/$/, '')}/api`;
+
+    const publicSegment = '/public/';
+    const publicIndex = window.location.pathname.indexOf(publicSegment);
+    const applicationBase = publicIndex > 0
+        ? window.location.pathname.slice(0, publicIndex)
+        : '';
+    return `${applicationBase}/api`;
+})();
 
 const Api = {
 
@@ -37,7 +50,7 @@ const Api = {
         // A 401 from a protected endpoint means the saved token is expired or invalid.
         // Login intentionally returns 401 for invalid credentials, which must remain on this page.
         if (response.status === 401 && endpoint !== 'auth/login.php') {
-            Auth.logout(); // clears localStorage
+            Auth.clearLocalAuth();
             window.location.href = '/BOMS-EVAgas/public/index.html';
             return;
         }

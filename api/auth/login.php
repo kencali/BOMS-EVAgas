@@ -8,6 +8,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../helpers/jwt.php';
+require_once __DIR__ . '/../helpers/login_rate_limit.php';
 
 setJsonHeaders(); // always first
 
@@ -23,15 +24,17 @@ $username = trim($body['username'] ?? '');
 $password = trim($body['password'] ?? '');
 
 // Basic validation
-if (empty($username) || empty($password)) {
-    sendError('Username and password are required.');
+if ($username === '' || $password === '' || strlen($username) > 60) {
+    sendError('Invalid username or password.', 401);
 }
 
 // Query the database
 // YOUR EXISTING users TABLE should have: id, username, password, role, branch_id, full_name
 // role must be one of: 'admin' | 'employee' | 'deliverer'
 $db  = getDB();
-$sql = "SELECT id, username, password, role, branch_id, full_name 
+rejectIfLoginThrottled($db, $username);
+
+$sql = "SELECT id, username, password, role, branch_id, full_name, status, token_version
         FROM users 
         WHERE username = ? 
         LIMIT 1";
@@ -40,16 +43,13 @@ $stmt = $db->prepare($sql);
 $stmt->execute([$username]);
 $user = $stmt->fetch();
 
-// Check if user exists
-if (!$user) {
-    sendError('User not found.', 401); // 401 = not authorized
+// Use one response for missing, disabled, and incorrect-password accounts.
+if (!$user || $user['status'] !== 'Active' || !password_verify($password, $user['password'])) {
+    recordFailedLogin($db, $username);
+    sendError('Invalid username or password.', 401);
 }
 
-// Check password
-// password_verify() works with your existing password_hash() passwords
-if (!password_verify($password, $user['password'])) {
-    sendError('User not found.', 401);
-}
+clearFailedLogins($db, $username);
 
 // Determine where to redirect after login based on role
 $redirectMap = [
@@ -61,7 +61,7 @@ $redirectMap = [
 $redirect = $redirectMap[$user['role']] ?? '/BOMS-EVAgas/public/index.html';
 
 // Generate JWT token (replaces PHP session)
-$token = generateToken($user['id'], $user['role'], (int)$user['branch_id']);
+$token = generateToken($user['id'], $user['role'], (int)$user['branch_id'], (int)$user['token_version']);
 
 // Send back everything the frontend needs
 sendSuccess([

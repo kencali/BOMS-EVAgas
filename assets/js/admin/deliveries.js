@@ -31,6 +31,7 @@ let   editingId     = null;   // null = add mode, number = edit mode
 let   allDeliveries = [];     // local cache of loaded deliveries
 let   productList   = [];     // for the product dropdown
 let   delivererList = [];     // for the assigned-to dropdown
+let locationDelivery = null, locationMap = null, locationMarker = null, selectedLocation = null;
 
 // ── Utility ────────────────────────────────────────────────
 const peso = v =>
@@ -128,6 +129,8 @@ function renderTable(deliveries) {
 
         const canCancel   = d.delivery_status !== 'Delivered' && d.delivery_status !== 'Cancelled';
         const canComplete = d.delivery_status === 'On the way';
+        const canLocate = ['Pending','On the way'].includes(d.delivery_status);
+        const locationAction = canLocate ? `<button class="btn-action edit" onclick="openLocationModal(${d.id})">${d.location_confirmed ? 'Update Location' : 'Confirm Location'}</button>` : '';
 
         return `
             <tr>
@@ -143,6 +146,7 @@ function renderTable(deliveries) {
                 <td class="col-actions">
                     <button class="btn-action edit"
                             onclick="openEditModal(${d.id})">Edit</button>
+                    ${locationAction}
                     ${canComplete
                         ? `<button class="btn-action deliver"
                                    onclick="completeDelivery(${d.id})">Mark Delivered</button>`
@@ -155,6 +159,14 @@ function renderTable(deliveries) {
             </tr>`;
     }).join('');
 }
+
+function openLocationModal(id) { locationDelivery=allDeliveries.find(d=>d.id===id); if(!locationDelivery)return; selectedLocation=locationDelivery.location_confirmed?{latitude:+locationDelivery.latitude,longitude:+locationDelivery.longitude}:null; document.getElementById('locationAddress').textContent=locationDelivery.customer_address; document.getElementById('locationSearch').value=locationDelivery.customer_address; document.getElementById('locationResults').innerHTML=''; document.getElementById('locationError').textContent=''; document.getElementById('locationModal').classList.add('open'); setTimeout(initLocationMap,100); }
+function initLocationMap(){ if(!locationMap){locationMap=L.map('locationMap').setView([13.3199218,123.7398304],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(locationMap);locationMap.on('click',e=>setLocation(e.latlng.lat,e.latlng.lng));} locationMap.invalidateSize(); if(selectedLocation)setLocation(selectedLocation.latitude,selectedLocation.longitude); }
+function setLocation(latitude,longitude){selectedLocation={latitude,longitude};if(locationMarker)locationMarker.remove();locationMarker=L.marker([latitude,longitude],{draggable:true}).addTo(locationMap);locationMarker.on('dragend',e=>setLocation(e.target.getLatLng().lat,e.target.getLatLng().lng));document.getElementById('locationCoordinates').textContent=`Selected: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}. Confirmation validates Malilipot, Albay.`;locationMap.setView([latitude,longitude],16);}
+async function searchLocation(){const q=document.getElementById('locationSearch').value.trim();if(!q)return;try{const d=await Api.post('routes/index.php',{action:'search_location',query:q});document.getElementById('locationResults').innerHTML=d.locations.length?d.locations.map((p,i)=>`<button type="button" class="location-result" onclick="pickSearchLocation(${i})">${escHtml(p.label)}</button>`).join(''):'No Malilipot, Albay result found.';window.locationSearchResults=d.locations;}catch(e){document.getElementById('locationError').textContent=e.message;}}
+function pickSearchLocation(i){const p=window.locationSearchResults[i];setLocation(p.latitude,p.longitude);}
+async function confirmLocation(){if(!selectedLocation)return document.getElementById('locationError').textContent='Select a marker on the map first.';try{await Api.post('routes/index.php',{action:'confirm_location',delivery_id:locationDelivery.id,...selectedLocation});showToast('Location confirmed. It is now eligible for route planning.','success');closeLocationModal();loadDeliveries();}catch(e){document.getElementById('locationError').textContent=e.message;}}
+function closeLocationModal(){document.getElementById('locationModal').classList.remove('open');}
 
 // ── Populate form dropdowns ────────────────────────────────
 function populateDropdowns() {

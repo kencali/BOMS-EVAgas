@@ -1,5 +1,37 @@
 RewriteEngine On
 
+# Defense in depth: web deployments must serve /public as the document root.
+# Never allow an accidentally placed environment file to be served.
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# These headers require Apache's mod_headers module. The CSP allows the existing
+# self-hosted scripts and Google Fonts without granting access to arbitrary origins.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'; img-src 'self' data: https://*.tile.openstreetmap.org; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self'"
+    # HSTS is emitted only for direct HTTPS requests. Configure it at the proxy as well when TLS terminates upstream.
+    Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
+
+    # Static files are revalidated on each use through their ETag. This keeps
+    # deployment updates visible without adding version strings to every page.
+    <FilesMatch "\.(?:css|js|mjs|png|jpe?g|gif|webp|svg|ico|woff2?)$">
+        Header set Cache-Control "public, max-age=0, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+# ETags use file modification time and size as the static-asset version.
+FileETag MTime Size
+
+# Production virtual hosts may set BOMS_FORCE_HTTPS=1. Local XAMPP remains HTTP-friendly.
+RewriteCond %{ENV:BOMS_FORCE_HTTPS} =1
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
 # THIS IS THE CRITICAL LINE — fixes the 401 token issue on Apache/XAMPP
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 

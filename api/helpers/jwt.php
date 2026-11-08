@@ -11,8 +11,20 @@
 // FORMAT: header.payload.signature  (3 parts joined by a dot)
 // ============================================================
 
-define('JWT_SECRET', 'boms_evagas_secret_2025_change_this'); // ← change this to something random
 define('JWT_EXPIRY', 60 * 60 * 8); // token lasts 8 hours (in seconds)
+
+require_once __DIR__ . '/../config/env.php';
+
+function jwtSecret(): string {
+    static $secret = null;
+    if ($secret !== null) return $secret;
+
+    $secret = bomsRequireEnv('BOMS_JWT_SECRET');
+    if (strlen($secret) < 32) {
+        bomsConfigFailure('BOMS_JWT_SECRET must be at least 32 characters long');
+    }
+    return $secret;
+}
 
 function base64UrlEncode(string $data): string {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -23,7 +35,7 @@ function base64UrlDecode(string $data): string {
 }
 
 // Creates a token for a logged-in user
-function generateToken(int $userId, string $role, int $branchId): string {
+function generateToken(int $userId, string $role, int $branchId, int $tokenVersion = 0): string {
     $header = base64UrlEncode(json_encode([
         'alg' => 'HS256',
         'typ' => 'JWT'
@@ -33,11 +45,12 @@ function generateToken(int $userId, string $role, int $branchId): string {
         'user_id'   => $userId,
         'role'      => $role,       // 'admin' | 'employee' | 'deliverer'
         'branch_id' => $branchId,
+        'token_version' => $tokenVersion,
         'exp'       => time() + JWT_EXPIRY
     ]));
 
     $signature = base64UrlEncode(
-        hash_hmac('sha256', "$header.$payload", JWT_SECRET, true)
+        hash_hmac('sha256', "$header.$payload", jwtSecret(), true)
     );
 
     return "$header.$payload.$signature";
@@ -53,7 +66,7 @@ function verifyToken(string $token): ?array {
 
     // Re-create the signature and compare — detects tampering
     $expectedSig = base64UrlEncode(
-        hash_hmac('sha256', "$header.$payload", JWT_SECRET, true)
+        hash_hmac('sha256', "$header.$payload", jwtSecret(), true)
     );
 
     if (!hash_equals($expectedSig, $signature)) return null; // tampered

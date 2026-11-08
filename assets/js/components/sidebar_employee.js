@@ -32,7 +32,7 @@ function renderSidebar() {
     const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · Legazpi';
 
     document.getElementById('sidebar').innerHTML = `
-        <aside class="sidebar">
+        <aside class="sidebar boms-role-sidebar employee-sidebar">
             <div class="sidebar-brand">
                 <div class="brand-flame">${BomsIcons.icon('flame')}</div>
                 <div>
@@ -75,6 +75,12 @@ function renderSidebar() {
         responsive.rel = 'stylesheet';
         responsive.href = '/BOMS-EVAgas/assets/css/responsive.css';
         document.head.appendChild(responsive);
+    }
+    if (!document.querySelector('link[href*="/assets/css/components/role-sidebar.css"]')) {
+        const roleSidebar = document.createElement('link');
+        roleSidebar.rel = 'stylesheet';
+        roleSidebar.href = '/BOMS-EVAgas/assets/css/components/role-sidebar.css';
+        document.head.appendChild(roleSidebar);
     }
     const style = document.createElement('style');
     style.textContent = `

@@ -51,7 +51,8 @@ if ($type === 'sales') {
             COALESCE(MAX(total_amount), 0)    AS highest_sale
         FROM sales
         WHERE branch_id = ?
-          AND DATE(sale_date) BETWEEN ? AND ?
+          AND sale_date >= ?
+          AND sale_date < DATE_ADD(?, INTERVAL 1 DAY)
     ");
     $totStmt->execute([$branchId, $dateFrom, $dateTo]);
     $totals = $totStmt->fetch();
@@ -65,7 +66,8 @@ if ($type === 'sales') {
             COALESCE(SUM(total_amount), 0)    AS revenue
         FROM sales
         WHERE branch_id = ?
-          AND DATE(sale_date) BETWEEN ? AND ?
+          AND sale_date >= ?
+          AND sale_date < DATE_ADD(?, INTERVAL 1 DAY)
         GROUP BY month_sort, month_label
         ORDER BY month_sort ASC
     ");
@@ -82,7 +84,8 @@ if ($type === 'sales') {
         JOIN sales    s ON s.id = si.sale_id
         JOIN products p ON p.id = si.product_id
         WHERE s.branch_id = ?
-          AND DATE(s.sale_date) BETWEEN ? AND ?
+          AND s.sale_date >= ?
+          AND s.sale_date < DATE_ADD(?, INTERVAL 1 DAY)
         GROUP BY p.id, p.product_name
         ORDER BY total_qty DESC
         LIMIT 5
@@ -251,7 +254,9 @@ if ($type === 'summary') {
     $salesStmt = $db->prepare("
         SELECT COALESCE(SUM(total_amount), 0) AS revenue
         FROM sales
-        WHERE branch_id = ? AND DATE(sale_date) BETWEEN ? AND ?
+        WHERE branch_id = ?
+          AND sale_date >= ?
+          AND sale_date < DATE_ADD(?, INTERVAL 1 DAY)
     ");
     $salesStmt->execute([$branchId, $dateFrom, $dateTo]);
     $revenue = (float)$salesStmt->fetch()['revenue'];

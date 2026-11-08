@@ -34,14 +34,25 @@ const Auth = {
     },
 
     // ── LOGOUT ─────────────────────────────────────────────
-    logout() {
+    async logout() {
+        // The server increments this account's token version, invalidating existing JWTs.
+        // Always clear the browser copy even if the user is offline or the token expired.
+        try {
+            await Api.post('auth/logout.php', {});
+        } catch (error) {
+            // Local cleanup still protects the current browser session.
+        }
+        this.clearLocalAuth();
+        window.location.href = '/BOMS-EVAgas/public/index.html';
+    },
+
+    clearLocalAuth() {
         // Clear everything from localStorage
         localStorage.removeItem('boms_token');
         localStorage.removeItem('boms_role');
         localStorage.removeItem('boms_branch_id');
         localStorage.removeItem('boms_name');
 
-        window.location.href = '/BOMS-EVAgas/public/index.html';
     },
 
     // ── GUARD ──────────────────────────────────────────────
