@@ -84,6 +84,33 @@ function renderSidebar() {
         </aside>
     `;
     BomsMobileNavigation.init();
+    updateCustomerRequestIndicator(user, currentPath);
+}
+
+async function updateCustomerRequestIndicator(user, currentPath) {
+    const deliveriesLink = document.querySelector('.nav-link[href$="/deliveries.html"]');
+    if (!deliveriesLink || user.role !== 'admin') return;
+
+    const storageKey = `boms.notification.admin.${user.user_id || user.id}.${user.branch_id}.customer-requests`;
+    try {
+        const data = await Api.get(`deliveries/index.php?action=notification_customer_requests&branch_id=${user.branch_id}`);
+        const latest = data.latest_created_at;
+        if (!latest) return;
+
+        const isDeliveriesPage = currentPath.endsWith('/deliveries.html');
+        const seen = localStorage.getItem(storageKey);
+        // On first use, establish a baseline rather than flagging old requests.
+        if (isDeliveriesPage || !seen) {
+            localStorage.setItem(storageKey, latest);
+            return;
+        }
+        if (latest > seen) {
+            deliveriesLink.insertAdjacentHTML('beforeend', '<span class="nav-update-dot" role="status" aria-label="New customer delivery request" title="New customer delivery request"></span>');
+        }
+    } catch (error) {
+        // Sidebar navigation remains available if optional notification metadata fails.
+        console.warn('Could not check delivery updates.', error);
+    }
 }
 
 // CSS for sidebar — injected once so every page gets it automatically

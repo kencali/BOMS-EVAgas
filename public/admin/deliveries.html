@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deliveries · BOMS Admin</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
   <link href="/BOMS-EVAgas/assets/css/pages/admin-deliveries.css" rel="stylesheet" />
@@ -27,6 +28,8 @@
         <button class="branch-btn"        data-branch="2" onclick="switchBranch(2)">Branch B</button>
       </div>
     </div>
+
+    <p class="helper-note"><span data-icon="truck" aria-hidden="true"></span><span>Customer requests need approval and location confirmation before routing. Only <strong>Mark Delivered</strong> creates the linked delivery sale and deducts stock.</span></p>
 
     <!-- Status count badges -->
     <!-- IDs: countPending, countOnTheWay, countDelivered, countCancelled -->

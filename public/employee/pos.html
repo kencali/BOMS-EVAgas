@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Point of Sale · BOMS</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/pages/employee-pos.css" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/light-theme.css" rel="stylesheet" />
@@ -21,6 +22,8 @@
       </div>
       <a href="/BOMS-EVAgas/public/employee/orders.html" style="font-size:.82rem;color:var(--mist);text-decoration:none;">View today's sales <span data-icon="arrowRight" aria-hidden="true"></span></a>
     </div>
+
+    <p class="helper-note"><span data-icon="cart" aria-hidden="true"></span><span>Verify the selected items and payment before processing. Completed sales update branch stock automatically.</span></p>
 
     <!-- POS Body -->
     <div class="pos-layout">
@@ -110,7 +113,7 @@
       <span class="val" id="receiptChange"></span>
     </div>
     <div class="receipt-id" id="receiptId"></div>
-    <button class="btn-new-sale" onclick="newSale()">New Sale</button>
+    <div class="receipt-actions"><button class="btn-print-receipt" type="button" onclick="printReceipt()">Print receipt</button><button class="btn-new-sale" onclick="newSale()">New Sale</button></div>
   </div>
 </div>
 

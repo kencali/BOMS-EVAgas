@@ -40,7 +40,8 @@ function renderCards(deliveries) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">${BomsIcons.icon('package')}</div>
-                <div>No ${activeFilter === 'all' ? '' : activeFilter.toLowerCase()} deliveries.</div>
+                <div>No ${activeFilter === 'all' ? 'assigned' : activeFilter.toLowerCase()} deliveries to show.</div>
+                <small>${activeFilter === 'all' ? 'Assigned deliveries will appear here when available.' : 'Try another status to view your other assigned deliveries.'}</small>
             </div>`;
         return;
     }

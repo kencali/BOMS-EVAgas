@@ -36,7 +36,7 @@ function renderDeliveries(deliveries) {
         `${deliveries.length} ${deliveries.length === 1 ? 'delivery' : 'deliveries'}`;
 
     if (!deliveries.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No deliveries found for your branch.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No deliveries match this status for your branch.<br><small>New or assigned deliveries will appear here when available.</small></td></tr>';
         return;
     }
 

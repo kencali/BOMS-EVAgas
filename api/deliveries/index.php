@@ -20,6 +20,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../helpers/auth_check.php';
+require_once __DIR__ . '/../helpers/customer_requests.php';
 
 setJsonHeaders();
 
@@ -179,6 +180,7 @@ if ($method === 'GET' && isset($_GET['deliverers'])) {
 
 // ── Determine access by method + action ───────────────────
 $action = $_GET['action'] ?? '';
+$customerRequestsReady = customerRequestSchemaReady($db);
 
 if ($method === 'GET' || $method === 'POST') {
     $user = requireAuth(['admin', 'employee', 'deliverer']);
@@ -188,6 +190,22 @@ if ($method === 'GET' || $method === 'POST') {
     $user = requireAuth('admin');
 } else {
     sendError('Method not allowed.', 405);
+}
+
+$customerFields = $customerRequestsReady
+    ? 'd.customer_reference, d.request_source, d.request_status, d.submitted_latitude, d.submitted_longitude'
+    : "NULL AS customer_reference, 'Internal' AS request_source, 'Approved' AS request_status, NULL AS submitted_latitude, NULL AS submitted_longitude";
+
+// Lightweight, page-load notification metadata for the Admin sidebar. It reports
+// only the most recent customer-request submission; it is not a real-time feed.
+if ($method === 'GET' && $action === 'notification_customer_requests') {
+    if ($user['role'] !== 'admin') sendError('Access denied.', 403);
+    if (!$customerRequestsReady) sendSuccess(['latest_created_at' => null]);
+    $branchId = isset($_GET['branch_id']) ? (int)$_GET['branch_id'] : (int)$user['branch_id'];
+    requireBranchAccess($user, $branchId, 'read');
+    $stmt = $db->prepare("SELECT MAX(created_at) AS latest_created_at FROM deliveries WHERE branch_id = ? AND request_source = 'Customer'");
+    $stmt->execute([$branchId]);
+    sendSuccess(['latest_created_at' => $stmt->fetch()['latest_created_at'] ?? null]);
 }
 
 // ── GET: Single delivery ──────────────────────────────────
@@ -200,6 +218,7 @@ if ($method === 'GET' && isset($_GET['id'])) {
             d.branch_id,
             d.customer_name,
             d.customer_phone,
+            $customerFields,
             d.customer_address,
             d.latitude,
             d.longitude,
@@ -270,6 +289,7 @@ if ($method === 'GET') {
             d.branch_id,
             d.customer_name,
             d.customer_phone,
+            $customerFields,
             d.customer_address,
             d.latitude,
             d.longitude,
@@ -384,6 +404,37 @@ if ($method === 'POST') {
     sendSuccess(['id' => (int)$db->lastInsertId()], 201);
 }
 
+// ── PUT: Customer-request review (admin only) ─────────────
+if ($method === 'PUT' && $action === 'request_review') {
+    if (!$customerRequestsReady) sendError('Customer request support is unavailable until the CUST-001 migration is applied.', 503);
+    $deliveryId = (int)($_GET['id'] ?? 0);
+    $body = json_decode(file_get_contents('php://input'), true) ?: [];
+    $decision = $body['decision'] ?? '';
+    if (!$deliveryId || !in_array($decision, ['approve', 'reject'], true)) sendError('A valid request review decision is required.');
+
+    $check = $db->prepare("SELECT id, request_status, delivery_status, sale_confirmed FROM deliveries WHERE id = ? AND branch_id = ? AND request_source = 'Customer' FOR UPDATE");
+    $db->beginTransaction();
+    try {
+        $check->execute([$deliveryId, $user['branch_id']]);
+        $delivery = $check->fetch();
+        if (!$delivery) throw new RuntimeException('Customer request not found in your branch.');
+        if ($delivery['request_status'] !== 'Pending Review') throw new RuntimeException('This customer request has already been reviewed.');
+        if ($decision === 'approve') {
+            $update = $db->prepare("UPDATE deliveries SET request_status = 'Approved' WHERE id = ? AND request_status = 'Pending Review'");
+            $update->execute([$deliveryId]);
+        } else {
+            $update = $db->prepare("UPDATE deliveries SET request_status = 'Rejected', delivery_status = 'Cancelled' WHERE id = ? AND request_status = 'Pending Review' AND sale_confirmed = 0");
+            $update->execute([$deliveryId]);
+        }
+        if ($update->rowCount() !== 1) throw new RuntimeException('Customer request review could not be saved.');
+        $db->commit();
+        sendSuccess(['reviewed' => true, 'id' => $deliveryId, 'request_status' => $decision === 'approve' ? 'Approved' : 'Rejected']);
+    } catch (Throwable $error) {
+        if ($db->inTransaction()) $db->rollBack();
+        sendError($error->getMessage(), 400);
+    }
+}
+
 // ── PUT: Full update (admin only) ─────────────────────────
 if ($method === 'PUT' && $action !== 'status') {
     $deliveryId = (int)($_GET['id'] ?? 0);
@@ -458,8 +509,9 @@ if ($method === 'PUT' && $action === 'status') {
         sendError('Invalid status value.');
     }
 
+    $requestSelect = $customerRequestsReady ? ', request_status' : ", 'Approved' AS request_status";
     $check = $db->prepare("
-        SELECT id, delivery_status, sale_confirmed, assigned_to
+        SELECT id, delivery_status, sale_confirmed, assigned_to {$requestSelect}
         FROM deliveries
         WHERE id = ? AND branch_id = ?
     ");
@@ -471,6 +523,9 @@ if ($method === 'PUT' && $action === 'status') {
     }
     if ($existingDelivery['delivery_status'] === 'Delivered' || (int)$existingDelivery['sale_confirmed'] === 1) {
         sendError('This delivery has already been completed. No additional sale was created.');
+    }
+    if ($existingDelivery['request_status'] !== 'Approved') {
+        sendError('This customer request must be approved before its delivery status can change.');
     }
 
     if ($deliveryStatus === 'Delivered') {
@@ -504,7 +559,8 @@ if ($method === 'DELETE') {
     $deliveryId = (int)($_GET['id'] ?? 0);
     if (!$deliveryId) sendError('Delivery ID is required.');
 
-    $check = $db->prepare("SELECT id, delivery_status, sale_confirmed FROM deliveries WHERE id = ? AND branch_id = ?");
+    $requestSelect = $customerRequestsReady ? ', request_source, request_status' : ", 'Internal' AS request_source, 'Approved' AS request_status";
+    $check = $db->prepare("SELECT id, delivery_status, sale_confirmed {$requestSelect} FROM deliveries WHERE id = ? AND branch_id = ?");
     $check->execute([$deliveryId, $user['branch_id']]);
     $delivery = $check->fetch();
     if (!$delivery) sendError('Delivery not found or not in your branch.', 404);
@@ -512,9 +568,9 @@ if ($method === 'DELETE') {
         sendError('Completed deliveries cannot be cancelled.');
     }
 
-    $stmt = $db->prepare("
-        UPDATE deliveries SET delivery_status = 'Cancelled' WHERE id = ?
-    ");
+    $stmt = $customerRequestsReady && $delivery['request_source'] === 'Customer' && $delivery['request_status'] === 'Pending Review'
+        ? $db->prepare("UPDATE deliveries SET delivery_status = 'Cancelled', request_status = 'Rejected' WHERE id = ?")
+        : $db->prepare("UPDATE deliveries SET delivery_status = 'Cancelled' WHERE id = ?");
     $stmt->execute([$deliveryId]);
 
     sendSuccess(['cancelled' => true, 'id' => $deliveryId]);

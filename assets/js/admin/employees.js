@@ -81,7 +81,7 @@ function renderTable(employees) {
 
     if (!employees.length) {
         tbody.innerHTML =
-            `<tr><td colspan="7" class="table-empty">No employees found.</td></tr>`;
+            `<tr><td colspan="7" class="table-empty">No employees match this view.<br><small>Add an employee record when the branch is ready.</small></td></tr>`;
         return;
     }
 

@@ -63,6 +63,13 @@ function statusBadge(status) {
     return `<span class="status-badge ${cls}">${escHtml(status)}</span>`;
 }
 
+function requestBadge(delivery) {
+    if (delivery.request_source !== 'Customer') return '';
+    const state = delivery.request_status || 'Pending Review';
+    const cls = state === 'Approved' ? 'status-delivered' : state === 'Rejected' ? 'status-cancelled' : 'status-pending';
+    return `<div class="request-meta"><span class="status-badge ${cls}">${escHtml(state)}</span><small>${escHtml(delivery.customer_reference || 'Customer request')}</small></div>`;
+}
+
 // ── Load deliveries from API ───────────────────────────────
 async function loadDeliveries() {
     document.getElementById('deliveryTableBody').innerHTML =
@@ -114,7 +121,7 @@ function renderTable(deliveries) {
 
     if (!deliveries.length) {
         tbody.innerHTML =
-            `<tr><td colspan="7" class="table-empty">No deliveries found.</td></tr>`;
+            `<tr><td colspan="7" class="table-empty">No deliveries match this status.<br><small>Create a delivery or wait for a customer request to be submitted.</small></td></tr>`;
         return;
     }
 
@@ -127,10 +134,27 @@ function renderTable(deliveries) {
             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        const canCancel   = d.delivery_status !== 'Delivered' && d.delivery_status !== 'Cancelled';
+        const awaitingReview = d.request_source === 'Customer' && d.request_status === 'Pending Review';
+        const canCancel   = !awaitingReview && d.delivery_status !== 'Delivered' && d.delivery_status !== 'Cancelled';
         const canComplete = d.delivery_status === 'On the way';
-        const canLocate = ['Pending','On the way'].includes(d.delivery_status);
-        const locationAction = canLocate ? `<button class="btn-action edit" onclick="openLocationModal(${d.id})">${d.location_confirmed ? 'Update Location' : 'Confirm Location'}</button>` : '';
+        const canLocate = ['Pending','On the way'].includes(d.delivery_status) && !awaitingReview;
+        const locationAction = canLocate
+            ? `<button class="btn-action edit" type="button" onclick="openLocationModal(${d.id})">${d.location_confirmed ? 'Update Location' : 'Confirm Location'}</button>`
+            : '';
+        const actions = [
+            awaitingReview
+                ? `<button class="btn-action approve" type="button" onclick="reviewCustomerRequest(${d.id}, 'approve')">Approve</button>
+                   <button class="btn-action cancel" type="button" onclick="reviewCustomerRequest(${d.id}, 'reject')">Reject</button>`
+                : '',
+            `<button class="btn-action edit" type="button" onclick="openEditModal(${d.id})">Edit</button>`,
+            locationAction,
+            canComplete
+                ? `<button class="btn-action deliver" type="button" onclick="completeDelivery(${d.id})">Mark Delivered</button>`
+                : '',
+            canCancel
+                ? `<button class="btn-action cancel" type="button" onclick="confirmCancel(${d.id}, '${escHtml(d.customer_name)}')">Cancel</button>`
+                : '',
+        ].filter(Boolean).join('');
 
         return `
             <tr>
@@ -138,31 +162,117 @@ function renderTable(deliveries) {
                 <td>
                     <div class="customer-name">${escHtml(d.customer_name)}</div>
                     <div class="customer-address">${escHtml(d.customer_address)}</div>
+                    ${requestBadge(d)}
                 </td>
                 <td>${escHtml(d.product_name)} × ${d.quantity}</td>
                 <td>${assignedName}</td>
                 <td>${statusBadge(d.delivery_status)}</td>
                 <td class="col-date">${dateStr}</td>
                 <td class="col-actions">
-                    <button class="btn-action edit"
-                            onclick="openEditModal(${d.id})">Edit</button>
-                    ${locationAction}
-                    ${canComplete
-                        ? `<button class="btn-action deliver"
-                                   onclick="completeDelivery(${d.id})">Mark Delivered</button>`
-                        : ''}
-                    ${canCancel
-                        ? `<button class="btn-action cancel"
-                                   onclick="confirmCancel(${d.id}, '${escHtml(d.customer_name)}')">Cancel</button>`
-                        : ''}
+                    <div class="delivery-actions">${actions}</div>
                 </td>
             </tr>`;
     }).join('');
 }
 
-function openLocationModal(id) { locationDelivery=allDeliveries.find(d=>d.id===id); if(!locationDelivery)return; selectedLocation=locationDelivery.location_confirmed?{latitude:+locationDelivery.latitude,longitude:+locationDelivery.longitude}:null; document.getElementById('locationAddress').textContent=locationDelivery.customer_address; document.getElementById('locationSearch').value=locationDelivery.customer_address; document.getElementById('locationResults').innerHTML=''; document.getElementById('locationError').textContent=''; document.getElementById('locationModal').classList.add('open'); setTimeout(initLocationMap,100); }
-function initLocationMap(){ if(!locationMap){locationMap=L.map('locationMap').setView([13.3199218,123.7398304],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(locationMap);locationMap.on('click',e=>setLocation(e.latlng.lat,e.latlng.lng));} locationMap.invalidateSize(); if(selectedLocation)setLocation(selectedLocation.latitude,selectedLocation.longitude); }
-function setLocation(latitude,longitude){selectedLocation={latitude,longitude};if(locationMarker)locationMarker.remove();locationMarker=L.marker([latitude,longitude],{draggable:true}).addTo(locationMap);locationMarker.on('dragend',e=>setLocation(e.target.getLatLng().lat,e.target.getLatLng().lng));document.getElementById('locationCoordinates').textContent=`Selected: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}. Confirmation validates Malilipot, Albay.`;locationMap.setView([latitude,longitude],16);}
+async function reviewCustomerRequest(id, decision) {
+    const label = decision === 'approve' ? 'approve' : 'reject';
+    if (!confirm(`Are you sure you want to ${label} this customer request?`)) return;
+    try {
+        await Api.put(`deliveries/index.php?id=${id}&action=request_review`, { decision });
+        showToast(decision === 'approve' ? 'Customer request approved. Confirm its location before route planning.' : 'Customer request rejected and cancelled.', 'success');
+        loadDeliveries();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+function locationCoordinates(delivery) {
+    // Once confirmed, the Admin-approved point is authoritative. Before that,
+    // prefer the customer-submitted point and fall back to legacy coordinates.
+    const isConfirmed = Number(delivery.location_confirmed) === 1;
+    const latitude = Number(isConfirmed ? delivery.latitude : (delivery.submitted_latitude ?? delivery.latitude));
+    const longitude = Number(isConfirmed ? delivery.longitude : (delivery.submitted_longitude ?? delivery.longitude));
+
+    return Number.isFinite(latitude) && Number.isFinite(longitude)
+        && latitude !== 0 && longitude !== 0
+        ? { latitude, longitude }
+        : null;
+}
+
+function adminLocationPin() {
+    return L.divIcon({
+        className: 'boms-admin-location-pin',
+        html: `<span>${BomsIcons.icon('flame')}</span>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor: [0, -32],
+    });
+}
+
+function openLocationModal(id) {
+    locationDelivery = allDeliveries.find(delivery => Number(delivery.id) === Number(id));
+    if (!locationDelivery) return;
+
+    selectedLocation = locationCoordinates(locationDelivery);
+    if (locationMarker) {
+        locationMarker.remove();
+        locationMarker = null;
+    }
+
+    document.getElementById('locationAddress').textContent = locationDelivery.customer_address;
+    document.getElementById('locationSearch').value = locationDelivery.customer_address;
+    document.getElementById('locationResults').innerHTML = '';
+    document.getElementById('locationError').textContent = '';
+    document.getElementById('locationCoordinates').textContent = selectedLocation
+        ? 'Loading the saved location…'
+        : 'No valid submitted location is available. Search, click the map, or drag a new marker to set one.';
+    document.getElementById('locationModal').classList.add('open');
+
+    requestAnimationFrame(initLocationMap);
+}
+
+function initLocationMap() {
+    if (!locationMap) {
+        locationMap = L.map('locationMap').setView([13.3199218, 123.7398304], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+        }).addTo(locationMap);
+        locationMap.on('click', event => setLocation(event.latlng.lat, event.latlng.lng));
+    }
+
+    requestAnimationFrame(() => {
+        locationMap.invalidateSize();
+        if (selectedLocation) {
+            setLocation(selectedLocation.latitude, selectedLocation.longitude);
+        } else {
+            locationMap.setView([13.3199218, 123.7398304], 13);
+        }
+    });
+}
+
+function setLocation(latitude, longitude) {
+    const nextLatitude = Number(latitude);
+    const nextLongitude = Number(longitude);
+    if (!Number.isFinite(nextLatitude) || !Number.isFinite(nextLongitude)) {
+        document.getElementById('locationError').textContent = 'The selected location is invalid. Please choose a point on the map.';
+        return;
+    }
+
+    selectedLocation = { latitude: nextLatitude, longitude: nextLongitude };
+    if (locationMarker) locationMarker.remove();
+    locationMarker = L.marker([nextLatitude, nextLongitude], {
+        draggable: true,
+        icon: adminLocationPin(),
+    }).addTo(locationMap);
+    locationMarker.on('dragend', event => {
+        const point = event.target.getLatLng();
+        setLocation(point.lat, point.lng);
+    });
+    document.getElementById('locationCoordinates').textContent =
+        `Selected: ${nextLatitude.toFixed(6)}, ${nextLongitude.toFixed(6)}. Confirmation validates Malilipot, Albay.`;
+    locationMap.setView([nextLatitude, nextLongitude], 16);
+}
 async function searchLocation(){const q=document.getElementById('locationSearch').value.trim();if(!q)return;try{const d=await Api.post('routes/index.php',{action:'search_location',query:q});document.getElementById('locationResults').innerHTML=d.locations.length?d.locations.map((p,i)=>`<button type="button" class="location-result" onclick="pickSearchLocation(${i})">${escHtml(p.label)}</button>`).join(''):'No Malilipot, Albay result found.';window.locationSearchResults=d.locations;}catch(e){document.getElementById('locationError').textContent=e.message;}}
 function pickSearchLocation(i){const p=window.locationSearchResults[i];setLocation(p.latitude,p.longitude);}
 async function confirmLocation(){if(!selectedLocation)return document.getElementById('locationError').textContent='Select a marker on the map first.';try{await Api.post('routes/index.php',{action:'confirm_location',delivery_id:locationDelivery.id,...selectedLocation});showToast('Location confirmed. It is now eligible for route planning.','success');closeLocationModal();loadDeliveries();}catch(e){document.getElementById('locationError').textContent=e.message;}}

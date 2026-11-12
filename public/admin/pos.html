@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Point of Sale · BOMS Admin</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="/BOMS-EVAgas/assets/css/pages/admin-pos.css" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/light-theme.css" rel="stylesheet" />
@@ -20,6 +21,8 @@
       </div>
       <a href="/BOMS-EVAgas/public/admin/sales.html" style="font-size:.82rem;color:var(--text-sub);text-decoration:none;">View sales history <span data-icon="arrowRight" aria-hidden="true"></span></a>
     </div>
+
+    <p class="helper-note"><span data-icon="cart" aria-hidden="true"></span><span>Confirm the items and amount tendered before processing. A completed sale updates stock and cannot be edited from this screen.</span></p>
 
     <div class="pos-layout">
 
@@ -91,7 +94,7 @@
     <div class="receipt-row"><span class="label">Total</span><span class="val" id="receiptTotal"></span></div>
     <div class="receipt-row"><span class="label">Tendered</span><span class="val" id="receiptTendered"></span></div>
     <div class="receipt-row change"><span class="label">Change</span><span class="val" id="receiptChange"></span></div>
-    <button class="btn-new-sale" onclick="newSale()">New Sale</button>
+    <div class="receipt-actions"><button class="btn-print-receipt" type="button" onclick="printReceipt()">Print receipt</button><button class="btn-new-sale" onclick="newSale()">New Sale</button></div>
   </div>
 </div>
 

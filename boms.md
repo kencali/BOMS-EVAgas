@@ -1,280 +1,94 @@
-# BOMS – Business Operation Management System
-## EVA Gas Trading | Refactored RESTful Architecture
+# BOMS — Current System Overview
 
-> **Why the refactor?** Your current monolithic structure mixes PHP logic, HTML rendering, and DB calls in one file (e.g., `sales.php` handles routing, queries, and display). The new structure separates **API (backend)** from **Frontend (HTML/JS)**, making it mobile-ready, easier to defend, and cleaner to maintain.
+## EVA Gas Trading | Business Operation Management System
 
----
+**Current stack:** HTML, CSS, vanilla JavaScript, PHP 8.x, MySQL/MariaDB, Leaflet, and OSRM.
+**Local project path:** `C:\xampp\htdocs\BOMS-EVAgas`
+**Current state:** stable local capstone system with Admin, Employee, Rider/Deliverer, and public Customer delivery-request interfaces.
 
-## Architecture Overview
+## What BOMS currently does
 
-```
-BOMS-EVAGas/
-│
-├── api/                          ← PHP REST API (Backend only, returns JSON)
-│   ├── config/
-│   │   ├── Database.php          ← PDO connection singleton
-│   │   ├── Cors.php              ← CORS headers for cross-origin requests
-│   │   └── Config.php            ← App constants (JWT_SECRET, etc.)
-│   │
-│   ├── middleware/
-│   │   ├── AuthMiddleware.php    ← Validates JWT token on every request
-│   │   └── RoleMiddleware.php    ← Checks role: admin | employee | deliverer
-│   │
-│   ├── models/                   ← Database logic only (SQL queries)
-│   │   ├── User.php
-│   │   ├── Product.php
-│   │   ├── Order.php
-│   │   ├── Inventory.php
-│   │   ├── Delivery.php
-│   │   ├── Employee.php
-│   │   ├── Payroll.php
-│   │   ├── Expense.php
-│   │   └── Report.php
-│   │
-│   ├── controllers/              ← Handles request → calls model → returns JSON
-│   │   ├── AuthController.php    ← login, logout, refresh token
-│   │   ├── ProductController.php ← CRUD for LPG products
-│   │   ├── OrderController.php   ← create, view, update orders (POS)
-│   │   ├── InventoryController.php
-│   │   ├── DeliveryController.php ← assign, update, track deliveries
-│   │   ├── EmployeeController.php
-│   │   ├── PayrollController.php
-│   │   ├── ExpenseController.php
-│   │   └── ReportController.php  ← sales summary, inventory report, payroll report
-│   │
-│   ├── routes/
-│   │   ├── api.php               ← Main router (maps URL → controller method)
-│   │   └── endpoints.md          ← API documentation (for your defense)
-│   │
-│   ├── helpers/
-│   │   ├── JwtHelper.php         ← Generate/decode JWT tokens
-│   │   └── ResponseHelper.php    ← Standardized JSON response format
-│   │
-│   └── index.php                 ← API entry point (all requests go here)
-│
-├── public/                       ← Frontend (HTML + Vanilla JS, no PHP)
-│   │
-│   ├── login.html                ← Shared login page (redirects by role)
-│   │
-│   ├── admin/                    ← Admin (Owner) views
-│   │   ├── dashboard.html        ← Sales overview, inventory summary
-│   │   ├── products.html         ← Add/edit/delete LPG products
-│   │   ├── inventory.html        ← Stock levels, adjustments
-│   │   ├── employees.html        ← Employee list, add/edit
-│   │   ├── payroll.html          ← Payroll computation, history
-│   │   ├── expenses.html         ← Expense logging
-│   │   ├── deliveries.html       ← All deliveries overview
-│   │   ├── reports.html          ← Sales, inventory, payroll reports
-│   │   └── settings.html         ← Branch settings, user accounts
-│   │
-│   ├── employee/                 ← Employee (Shop Staff) views
-│   │   ├── dashboard.html        ← Today's orders, stock summary
-│   │   ├── pos.html              ← Point of Sale (process orders)
-│   │   ├── orders.html           ← View/manage customer orders
-│   │   └── inventory.html        ← View stock levels (read-only)
-│   │
-│   └── deliverer/                ← Deliverer views
-│       ├── dashboard.html        ← Today's assigned deliveries
-│       ├── deliveries.html       ← List of deliveries (pending, done)
-│       └── route.html            ← Route map / delivery directions
-│
-├── assets/
-│   ├── css/
-│   │   ├── style.css             ← Global styles
-│   │   ├── sidebar.css
-│   │   └── components.css        ← Reusable UI components
-│   │
-│   ├── js/
-│   │   ├── core/
-│   │   │   ├── api.js            ← Central fetch() wrapper (adds JWT header)
-│   │   │   ├── auth.js           ← Login, logout, token storage
-│   │   │   └── router.js         ← Role-based redirect on page load
-│   │   │
-│   │   ├── admin/
-│   │   │   ├── dashboard.js
-│   │   │   ├── products.js
-│   │   │   ├── inventory.js
-│   │   │   ├── employees.js
-│   │   │   ├── payroll.js
-│   │   │   ├── expenses.js
-│   │   │   └── reports.js
-│   │   │
-│   │   ├── employee/
-│   │   │   ├── pos.js            ← Cart logic, order submission
-│   │   │   └── orders.js
-│   │   │
-│   │   └── deliverer/
-│   │       ├── deliveries.js
-│   │       └── route.js          ← Google Maps / Leaflet.js integration
-│   │
-│   └── img/
-│       └── logo.png
-│
-├── database/
-│   ├── boms_schema.sql           ← Full DB schema
-│   └── boms_seed.sql             ← Sample data for testing/defense
-│
-├── .htaccess                     ← Redirect all /api/* to api/index.php
-└── README.md
+BOMS manages two EVA Gas Trading branches:
+
+- **Branch A — Malilipot, Albay**
+- **Branch B — Legazpi, Albay**
+
+It supports products and inventory, walk-in POS sales, delivery lifecycle management, rider assignment, route planning, employees, payroll, expenses, reports, and customer delivery requests.
+
+## User interfaces
+
+| User | Current access |
+|---|---|
+| Admin | Dashboard, products, inventory, sales, POS, deliveries, route planning, employees, payroll, expenses, and reports. |
+| Employee | Branch dashboard, POS, today’s sales, deliveries relevant to the employee’s branch, and stock view. |
+| Rider / Deliverer | Own delivery statistics, assigned deliveries, route overview, My Route map, and permitted status updates. |
+| Customer | Public LPG delivery request form, map location pinning, request reference, and status lookup. |
+
+## Current business rules
+
+### Walk-in POS
+
+- Admins and Employees can process walk-in sales in their own branch.
+- A sale creates `sales` and `sale_items` records in one transaction.
+- Stock is locked/rechecked and deducted atomically so stock cannot become negative through normal concurrent POS requests.
+- A compact receipt can be printed or saved as PDF after a successful sale.
+
+### Deliveries and delivery sales
+
+- Creating a delivery checks available stock but **does not deduct stock** and **does not create a sale**.
+- Pending or On-the-way deliveries can be cancelled before completion without stock deduction or a sale.
+- Completion occurs only through the explicit **Mark Delivered** action.
+- Completion rechecks stock in a transaction, creates one linked `delivery` sale and `sale_items`, deducts stock once, records `Delivered`, `delivered_at`, and `sale_confirmed = 1`.
+- Delivered or sale-confirmed deliveries cannot be completed again, edited, or cancelled through the supported workflow.
+
+### Customer delivery requests
+
+- The customer portal creates a `Pending Review` request and stores the submitted map location separately.
+- Customer submission does not create a sale, deduct stock, assign a rider, or complete a delivery.
+- An Admin must approve the request before its delivery status can proceed or its location can be confirmed.
+- Admin location confirmation validates Malilipot, Albay coordinates and saves the final approved point with `location_confirmed = 1`.
+- Route planning requires an assigned rider, an approved request where applicable, a valid confirmed location, and at least two selected stops.
+
+### Route planning
+
+- Admin route planning is single-rider planning only.
+- BOMS stores the Admin-recommended stop sequence and OSRM road geometry.
+- Riders cannot change the optimized stop order.
+- The Rider Dashboard and My Route page both show the Rider’s own currently planned route; no live rider GPS is claimed or implemented.
+
+## Current visual and UI conventions
+
+- Light-only interface with EVA orange/red as the primary accent.
+- Locally generated Lucide-style SVG icons.
+- Responsive shared sidebar/drawer behavior.
+- A local BOMS flame favicon is used by all current entry pages.
+- Admin Deliveries has a lightweight, non-real-time notification dot for newly submitted customer requests. Its seen state is stored per Admin and branch in that browser’s local storage.
+
+## Security and operational state
+
+- JWT signing and database credentials come from environment configuration, not source-code constants.
+- JWTs expire after eight hours; protected API calls recheck the current account’s status, role, branch, and token version.
+- API responses with authenticated business data use private no-store caching.
+- CORS uses configured trusted origins rather than a wildcard.
+- Login is rate-limited and uses generic invalid-credential messages.
+- `.env` files are ignored by Git and must remain outside the public web root in production.
+
+## Important files
+
+```text
+api/                    PHP JSON endpoints, auth, configuration, helpers
+public/                 HTML entry pages by role
+assets/css/             shared, component, and page-level styling
+assets/js/              API/auth helpers, role components, and page logic
+assets/images/          cylinder asset and BOMS favicon
+database/migrations/    forward-only migrations
+docs/                   operational and feature documentation
 ```
 
----
+## Deployment status
 
-## Key Differences from Your Current Structure
+**NO-GO — not ready for public deployment yet.**
 
-| Old (Monolithic)             | New (RESTful)                            |
-|------------------------------|------------------------------------------|
-| `admin/sales.php` does everything | `SalesController.php` (logic) + `sales.html` (UI) |
-| Auth via `session_start()` in each file | JWT token validated by `AuthMiddleware.php` |
-| HTML mixed with PHP/SQL       | Pure HTML + JS calls API endpoints       |
-| No role enforcement per page  | `RoleMiddleware.php` blocks unauthorized requests |
-| Hard to use on mobile         | Any device can call the API (mobile-ready) |
-| `includes/header.php` per page | Shared `sidebar.css` + JS renders layout |
+Before deployment, complete the manual browser and role test matrix, verify production environment configuration, apply migrations to the intended database, prove a separate-database backup restoration, and verify the target host can safely support the public/API/assets layout and external routing/geocoding dependencies.
 
----
-
-## API Endpoint Structure (for your defense)
-
-```
-POST   /api/auth/login               → returns JWT token + role
-POST   /api/auth/logout
-
-GET    /api/products                  → list all products
-POST   /api/products                  → add product        [admin only]
-PUT    /api/products/{id}             → edit product       [admin only]
-DELETE /api/products/{id}             → delete product     [admin only]
-
-GET    /api/inventory                 → stock levels
-PUT    /api/inventory/{id}            → adjust stock       [admin, employee]
-
-GET    /api/orders                    → all orders
-POST   /api/orders                    → create order (POS) [employee]
-PUT    /api/orders/{id}/status        → update status
-
-GET    /api/deliveries                → all deliveries
-POST   /api/deliveries                → assign delivery    [admin, employee]
-PUT    /api/deliveries/{id}/status    → mark done/ongoing  [deliverer]
-
-GET    /api/employees                 → employee list      [admin]
-POST   /api/employees                 → add employee       [admin]
-
-GET    /api/payroll                   → payroll records    [admin]
-POST   /api/payroll/compute           → compute payroll    [admin]
-
-GET    /api/reports/sales             → sales report       [admin]
-GET    /api/reports/inventory         → inventory report   [admin]
-GET    /api/reports/payroll           → payroll report     [admin]
-```
-
----
-
-## How JWT Auth Works (Simple Explanation for Defense)
-
-```
-1. User logs in → POST /api/auth/login { username, password }
-2. API verifies credentials → returns { token: "eyJ...", role: "admin" }
-3. Frontend stores token in localStorage
-4. Every API request includes: Authorization: Bearer eyJ...
-5. AuthMiddleware.php decodes the token → confirms identity
-6. RoleMiddleware.php checks role → blocks if unauthorized
-```
-
----
-
-## Migration Path from Your Existing Code
-
-Since your system is **already working**, you don't need to rewrite everything.
-Follow this order:
-
-1. **Create `api/` folder** → move DB logic from your PHP files into models/controllers
-2. **Create `api/index.php`** → simple router that reads `$_SERVER['REQUEST_URI']`
-3. **Convert one module first** (suggest: Products) → test with Postman/Thunder Client
-4. **Strip PHP from your HTML** → replace with `fetch('/api/products')` calls in JS
-5. **Add JWT** → replace `session_start()` with `JwtHelper::generate()` on login
-6. **Repeat per module** → Orders → Inventory → Deliveries → Payroll → Reports
-
-> **Tip for defense:** You can explain this as a "phased migration" — your working monolithic system is Phase 1, and the RESTful version is Phase 2 (what you're presenting as the improved architecture). This shows awareness of software engineering evolution.
-
----
-
-## Role Access Matrix
-
-| Feature              | Admin ✅ | Employee ✅ | Deliverer ✅ |
-|----------------------|---------|------------|-------------|
-| Dashboard            | Full    | Limited    | Own only    |
-| POS / Orders         | View    | Full       | —           |
-| Inventory            | Full    | View       | —           |
-| Deliveries           | Full    | Assign     | Update own  |
-| Route Map            | View    | View       | Full        |
-| Employees            | Full    | —          | —           |
-| Payroll              | Full    | —          | —           |
-| Expenses             | Full    | —          | —           |
-| Reports              | Full    | —          | —           |
-| Settings             | Full    | —          | —           |
-
-## Simplified System Tree Architechture
-
-BOMS-EVAGas/
-│
-├── api/                          ← All PHP (backend, returns JSON)
-│   ├── config/
-│   │   └── database.php          ← DB connection
-│   ├── auth/
-│   │   └── login.php             ← Login → returns token
-│   ├── products/
-│   │   └── index.php             ← GET/POST/PUT/DELETE products
-│   ├── orders/
-│   │   └── index.php
-│   ├── inventory/
-│   │   └── index.php
-│   ├── deliveries/
-│   │   └── index.php
-│   ├── payroll/
-│   │   └── index.php
-│   ├── reports/
-│   │   └── index.php
-│   └── helpers/
-│       ├── auth_check.php        ← Validates token + role
-│       └── response.php          ← Sends back clean JSON
-│
-├── public/                       ← All HTML pages (no PHP here)
-│   ├── login.html
-│   ├── admin/
-│   │   ├── dashboard.html
-│   │   ├── products.html
-│   │   ├── inventory.html
-│   │   ├── employees.html
-│   │   ├── payroll.html
-│   │   ├── deliveries.html
-│   │   └── reports.html
-│   ├── employee/
-│   │   ├── dashboard.html
-│   │   ├── pos.html
-│   │   └── orders.html
-│   └── deliverer/
-│       ├── dashboard.html
-│       └── deliveries.html
-│
-├── assets/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── api.js                ← One file: handles all fetch() calls
-│       ├── auth.js               ← Login/logout/token
-│       ├── admin/
-│       │   ├── dashboard.js
-│       │   ├── products.js
-│       │   ├── inventory.js
-│       │   ├── employees.js
-│       │   ├── payroll.js
-│       │   └── reports.js
-│       ├── employee/
-│       │   ├── pos.js
-│       │   └── orders.js
-│       └── deliverer/
-│           └── deliveries.js
-│
-├── database/
-│   └── boms.sql                  ← Your full DB schema
-│
-└── .htaccess
+For the detailed audit, see `docs/reports/POST-CUST-003-UI-PDF-DEPLOYMENT-READINESS.md`.

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deliveries · BOMS Employee</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/pages/employee-deliveries.css" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/light-theme.css" rel="stylesheet" />
@@ -16,6 +17,7 @@
       <div><h1 class="page-title">Deliveries</h1><p class="page-subtitle" id="branchLabel">Your branch deliveries</p></div>
       <button class="btn-refresh" onclick="loadDeliveries()"><span data-icon="refresh" aria-hidden="true"></span> Refresh</button>
     </div>
+    <p class="helper-note"><span data-icon="truck" aria-hidden="true"></span><span>View delivery details for your branch. Delivery completion and location confirmation remain controlled through the approved delivery workflow.</span></p>
     <div class="toolbar">
       <select id="statusFilter" class="filter-select" onchange="loadDeliveries()">
         <option value="all">All statuses</option><option value="Pending">Pending</option><option value="On the way">On the way</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option>

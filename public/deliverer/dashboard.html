@@ -4,7 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard · BOMS Deliverer</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
   <link href="/BOMS-EVAgas/assets/css/pages/deliverer-dashboard.css" rel="stylesheet" />
   <link href="/BOMS-EVAgas/assets/css/light-theme.css" rel="stylesheet" />
 </head>
@@ -17,6 +19,8 @@
       <h1 class="page-title" id="greeting">Hello!</h1>
       <p class="page-subtitle" id="dateLabel"></p>
     </div>
+
+    <p class="helper-note"><span data-icon="truck" aria-hidden="true"></span><span>This route is the Admin-planned sequence for your assigned stops. It does not show live rider location.</span></p>
 
     <!-- Stats -->
     <div class="stats-row">
@@ -34,14 +38,15 @@
       </div>
     </div>
 
-    <!-- Quick link -->
-    <a href="/BOMS-EVAgas/public/deliverer/deliveries.html" class="quick-card">
-      <span class="quick-icon" data-icon="truck" aria-hidden="true"></span>
-      <div>
-        <div class="quick-label">View My Deliveries</div>
-        <div class="quick-desc">See all assigned routes and update status</div>
+    <section class="rider-route-overview" aria-labelledby="dashboardRouteTitle">
+      <div class="route-overview-heading">
+        <div><h2 id="dashboardRouteTitle">My assigned route</h2><p id="dashboardRouteSummary">Loading assigned route…</p></div>
+        <a href="/BOMS-EVAgas/public/deliverer/route.html" class="route-overview-link">Open My Route</a>
       </div>
-    </a>
+      <div id="dashboardRouteEmpty" class="route-empty" hidden>No assigned route available. Assigned and confirmed stops will appear here after Admin plans a route.</div>
+      <div id="dashboardRouteMap" class="dashboard-route-map" aria-label="Assigned delivery route map"></div>
+      <ol id="dashboardRouteStops" class="dashboard-route-stops"></ol>
+    </section>
 
   </main>
 </div>
@@ -51,6 +56,8 @@
 <script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/mobile-navigation.js"></script>
 <script src="/BOMS-EVAgas/assets/js/components/sidebar_deliverer.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/BOMS-EVAgas/assets/js/components/rider-route-map.js"></script>
 <script src="/BOMS-EVAgas/assets/js/deliverer/dashboard.js"></script>
 </body>
 </html>

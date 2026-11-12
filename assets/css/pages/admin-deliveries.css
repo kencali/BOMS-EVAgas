@@ -46,9 +46,10 @@
     .delivery-table tbody tr:hover td{background:rgba(255,255,255,.02);}
     .col-id{width:60px;font-family:'Space Mono',monospace;font-size:.78rem;color:var(--mist);}
     .col-date{width:120px;font-size:.78rem;color:var(--mist);}
-    .col-actions{width:150px;}
+    .col-actions{width:180px;}
     .customer-name{font-weight:600;color:var(--cream);}
     .customer-address{font-size:.72rem;color:var(--mist);margin-top:.15rem;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .request-meta{display:flex;align-items:center;gap:.4rem;margin-top:.35rem;}.request-meta small{font-family:'Space Mono',monospace;font-size:.64rem;color:var(--mist);}
     .table-empty{text-align:center;padding:3rem 1rem;color:var(--mist);}
 
     /* Status badges */
@@ -58,10 +59,13 @@
     .status-delivered{background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);}
     .status-cancelled{background:rgba(255,255,255,.05);color:var(--mist);border:1px solid var(--border);}
 
-    /* Action buttons */
-    .btn-action{padding:.32rem .75rem;border-radius:7px;border:1px solid;font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;margin-right:.35rem;}
+    /* Delivery-table actions: consistent compact controls that wrap in-table. */
+    .delivery-actions{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;min-width:132px;}
+    .delivery-actions .btn-action{display:inline-flex;align-items:center;justify-content:center;min-height:32px;max-width:100%;padding:.35rem .7rem;border-radius:7px;border:1px solid;font-family:'Sora',sans-serif;font-size:.75rem;font-weight:600;line-height:1.15;text-align:center;white-space:normal;cursor:pointer;transition:all .15s;margin:0;}
     .btn-action.edit{border-color:rgba(90,200,250,.3);color:var(--blue);background:rgba(90,200,250,.08);}
     .btn-action.edit:hover{background:rgba(90,200,250,.18);}
+    .btn-action.approve{border-color:rgba(255,75,31,.45);color:var(--flame);background:rgba(255,75,31,.10);}
+    .btn-action.approve:hover{background:rgba(255,75,31,.18);}
     .btn-action.deliver{border-color:rgba(52,199,89,.3);color:var(--green);background:rgba(52,199,89,.08);}
     .btn-action.deliver:hover{background:rgba(52,199,89,.18);}
     .btn-action.cancel{border-color:rgba(255,59,48,.3);color:var(--red);background:rgba(255,59,48,.08);}
@@ -93,6 +97,7 @@
     /* Confirm cancel modal */
     .modal-box.small{max-width:380px;text-align:center;}
     .location-box{max-width:760px}.location-address{font-size:.84rem;color:var(--mist);margin:-.75rem 0 1rem}.location-search{display:flex;gap:.5rem;margin-bottom:.65rem}.location-results{display:grid;gap:.35rem;max-height:110px;overflow:auto;margin-bottom:.65rem}.location-result{text-align:left;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--cream);border-radius:7px;cursor:pointer;font:inherit;font-size:.76rem}.location-result:hover{border-color:var(--flame)}#locationMap{height:340px;border-radius:9px;overflow:hidden}.location-coordinates{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--mist);margin-top:.65rem}
+    .boms-admin-location-pin{background:transparent;border:0}.boms-admin-location-pin span{display:grid;place-items:center;width:34px;height:34px;border:2px solid var(--white);border-radius:50% 50% 50% 0;background:var(--flame);color:var(--white);box-shadow:0 3px 10px rgba(0,0,0,.3);transform:rotate(-45deg)}.boms-admin-location-pin .boms-icon{width:17px;height:17px;transform:rotate(45deg)}
     .confirm-icon{font-size:2.5rem;margin-bottom:.75rem;}
     .confirm-msg{font-size:.9rem;color:var(--cream);line-height:1.6;margin-bottom:1.5rem;}
     .confirm-msg strong{color:var(--white);}
@@ -105,4 +110,4 @@
     .toast.error{border-color:rgba(255,59,48,.4);color:#FF6B61;}
     .toast.success{border-color:rgba(52,199,89,.3);color:var(--green);}
 
-    @media(max-width:640px){.form-row{grid-template-columns:1fr;}.col-date,.col-id{display:none;}}
+    @media(max-width:640px){.form-row{grid-template-columns:1fr;}.col-date,.col-id{display:none;}.col-actions{width:auto;min-width:156px;}.delivery-actions{min-width:0;}.delivery-actions .btn-action{flex:1 1 auto;}.location-search{flex-wrap:wrap}.location-search .field-input{min-width:0;flex:1 1 180px}.location-search .btn-submit{flex:0 1 auto;}}

@@ -1,3 +1,4 @@
+.main-content:has(.route-layout) { min-width: 0; overflow-x: clip; }
 .route-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -180,6 +181,14 @@
     #routeSequence li { padding-left: 2px; }
     .stop { align-items: flex-start; }
     .stop strong, .stop small { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+    .route-toolbar { grid-template-columns: 1fr; }
+    .route-toolbar label { grid-column: auto; }
+    .route-toolbar .btn-load, .route-toolbar .btn-compute { width: 100%; }
+    .route-card { padding: 14px; }
+    #routeMap { width: 100%; max-width: 100%; }
 }
 
 @media (max-width: 340px) {

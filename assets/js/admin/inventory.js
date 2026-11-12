@@ -42,6 +42,7 @@ function showToast(message, type = 'info') {
 async function loadInventory() {
     document.getElementById('inventoryTableBody').innerHTML =
         `<tr><td colspan="5" class="table-empty">Loading...</td></tr>`;
+    setSummaryValues();
 
     try {
         const params = new URLSearchParams({ branch_id: viewBranch });
@@ -51,10 +52,7 @@ async function loadInventory() {
 
         // Update summary cards
         // IDs: summaryTotal, summaryOut, summaryLow, summaryOk
-        document.getElementById('summaryTotal').textContent = data.summary.total_products  ?? 0;
-        document.getElementById('summaryOut').textContent   = data.summary.out_of_stock    ?? 0;
-        document.getElementById('summaryLow').textContent   = data.summary.low_stock       ?? 0;
-        document.getElementById('summaryOk').textContent    = data.summary.ok_stock        ?? 0;
+        setSummaryValues(data.summary);
 
         document.getElementById('inventoryCount').textContent =
             `${data.count} product${data.count !== 1 ? 's' : ''}`;
@@ -63,9 +61,18 @@ async function loadInventory() {
 
     } catch (err) {
         showToast(err.message, 'error');
+        setSummaryValues();
+        document.getElementById('inventoryCount').textContent = '';
         document.getElementById('inventoryTableBody').innerHTML =
             `<tr><td colspan="5" class="table-empty" style="color:var(--red);">Failed to load inventory.</td></tr>`;
     }
+}
+
+function setSummaryValues(summary = null) {
+    document.getElementById('summaryTotal').textContent = summary?.total_products ?? '—';
+    document.getElementById('summaryOut').textContent   = summary?.out_of_stock ?? '—';
+    document.getElementById('summaryLow').textContent   = summary?.low_stock ?? '—';
+    document.getElementById('summaryOk').textContent    = summary?.ok_stock ?? '—';
 }
 
 // ── Render table ───────────────────────────────────────────
@@ -74,7 +81,7 @@ function renderTable(products) {
 
     if (!products.length) {
         tbody.innerHTML =
-            `<tr><td colspan="5" class="table-empty">No products found.</td></tr>`;
+            `<tr><td colspan="5" class="table-empty">No products match this view.<br><small>Try All Stock or add a product from Products first.</small></td></tr>`;
         return;
     }
 
@@ -165,9 +172,12 @@ async function handleAdjust() {
     const adjustAmount = parseInt(document.getElementById('adjustAmount').value);
     const reason       = document.getElementById('adjustReason').value.trim();
 
-    if (isNaN(adjustAmount) || adjustAmount < 0) {
+    const requiresPositiveAmount = adjustType === 'add' || adjustType === 'subtract';
+    if (isNaN(adjustAmount) || adjustAmount < 0 || (requiresPositiveAmount && adjustAmount === 0)) {
         document.getElementById('adjustAmount').classList.add('error');
-        document.getElementById('errAdjustAmount').textContent = 'Enter a valid positive number.';
+        document.getElementById('errAdjustAmount').textContent = requiresPositiveAmount
+            ? 'Enter an amount greater than zero.'
+            : 'Enter a valid stock quantity.';
         return;
     }
 

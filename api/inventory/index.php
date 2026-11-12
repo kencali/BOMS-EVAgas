@@ -119,6 +119,9 @@ if ($method === 'PUT') {
         sendError('adjust_type must be: set, add, or subtract.');
     }
     if ($adjustAmount < 0) sendError('Amount cannot be negative.');
+    if (in_array($adjustType, ['add', 'subtract'], true) && $adjustAmount === 0) {
+        sendError('Amount must be greater than zero when adding or subtracting stock.');
+    }
 
     // Calculate new stock value
     if ($adjustType === 'set') {

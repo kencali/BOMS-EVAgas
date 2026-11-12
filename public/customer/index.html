@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request Delivery · EVA Gas Trading</title>
+  <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/BOMS-EVAgas/assets/css/light-theme.css">
+  <link rel="stylesheet" href="/BOMS-EVAgas/assets/css/pages/customer-portal.css">
+</head>
+<body class="customer-page">
+  <header class="customer-header">
+    <a class="customer-brand" href="index.html" aria-label="EVA Gas Trading delivery requests">
+      <span class="brand-mark" data-icon="flame" aria-hidden="true"></span>
+      <span><strong>BOMS</strong><small>EVA Gas Trading</small></span>
+    </a>
+    <a class="customer-header-link" href="#statusLookup">Check request</a>
+  </header>
+
+  <main class="customer-main">
+    <section class="customer-hero">
+      <p class="eyebrow">MALILIPOT DELIVERY</p>
+      <h1>Request LPG delivery</h1>
+      <p>Choose your LPG product, add your delivery details, and pin the exact location for Admin review.</p>
+    </section>
+
+    <section class="portal-card" aria-labelledby="requestTitle">
+      <div class="section-heading"><div><p class="eyebrow">DELIVERY REQUEST</p><h2 id="requestTitle">Your order details</h2></div><span class="required-note">* Required</span></div>
+      <form id="requestForm" novalidate>
+        <div class="form-grid">
+          <label>Full name *<input id="customerName" name="customer_name" maxlength="100" autocomplete="name" required></label>
+          <label>Mobile number *<input id="customerPhone" name="customer_phone" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="09XX XXX XXXX" required></label>
+        </div>
+        <label>Available LPG product *<select id="productId" name="product_id" required><option value="">Loading products…</option></select></label>
+        <label>Quantity *<input id="quantity" name="quantity" type="number" min="1" max="50" value="1" inputmode="numeric" required></label>
+        <label>Delivery address / landmark *<textarea id="customerAddress" name="customer_address" rows="3" maxlength="1000" placeholder="House number, street, barangay, and a nearby landmark" required></textarea></label>
+        <label>Optional delivery notes<textarea id="notes" name="notes" rows="2" maxlength="1000" placeholder="Gate color, preferred delivery note, or other helpful detail"></textarea></label>
+
+        <section class="location-section" aria-labelledby="locationTitle">
+          <div class="section-heading compact"><div><h3 id="locationTitle">Pin your delivery location *</h3><p>Search, tap the map, drag the marker, or use your device location. Review the pin before sending.</p></div></div>
+          <div class="location-search-row"><input id="locationSearch" type="search" placeholder="Search in Malilipot, Albay"><button id="searchLocation" type="button" class="button-secondary">Search</button><button id="useLocation" type="button" class="button-secondary">Use my location</button></div>
+          <div id="locationResults" class="location-results" aria-live="polite"></div>
+          <div id="customerMap" aria-label="Delivery location map"></div>
+          <p id="locationInfo" class="location-info">No location selected yet.</p>
+        </section>
+        <p id="formMessage" class="form-message" role="alert"></p>
+        <button id="submitRequest" class="button-primary" type="submit">Send delivery request</button>
+        <p class="privacy-note">Your request is subject to Admin review and location confirmation. No payment, sale, or stock deduction occurs when you submit this form.</p>
+      </form>
+    </section>
+
+    <section id="confirmation" class="portal-card confirmation" hidden aria-live="polite"></section>
+    <section id="statusLookup" class="portal-card lookup-card">
+      <div class="section-heading compact"><div><p class="eyebrow">REQUEST STATUS</p><h2>Check an existing request</h2><p>Enter the reference and mobile number used when you submitted it.</p></div></div>
+      <form id="statusForm" class="lookup-form"><input id="statusReference" placeholder="REQ-YYYYMMDD-XXXXXX" maxlength="20"><input id="statusPhone" placeholder="Mobile number" maxlength="20" inputmode="tel"><button type="submit" class="button-secondary">Check status</button></form>
+      <p class="privacy-note">Use the same mobile number entered with the request. Location confirmation and rider assignment happen only after Admin review.</p>
+      <p id="statusMessage" class="form-message" role="status"></p>
+    </section>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
+  <script src="/BOMS-EVAgas/assets/js/customer/portal.js"></script>
+</body>
+</html>

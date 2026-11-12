@@ -3,6 +3,8 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../helpers/auth_check.php';
+require_once __DIR__ . '/../helpers/location.php';
+require_once __DIR__ . '/../helpers/customer_requests.php';
 
 setJsonHeaders();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -73,15 +75,16 @@ $action=$body['action'] ?? 'plan';
 if ($action === 'eligible') {
     $riderId=(int)($body['rider_id'] ?? 0); if (!$riderId) routeError('A rider is required.');
     $r=$db->prepare("SELECT id FROM users WHERE id=? AND role='deliverer' AND branch_id=? AND status='Active'"); $r->execute([$riderId,$user['branch_id']]); if (!$r->fetch()) routeError('Rider not found in your branch.',404);
-    $s=$db->prepare("SELECT id,customer_name,customer_address,delivery_status,latitude,longitude,location_confirmed FROM deliveries WHERE branch_id=? AND assigned_to=? AND delivery_status IN ('Pending','On the way') ORDER BY created_at"); $s->execute([$user['branch_id'],$riderId]); sendSuccess(['deliveries'=>$s->fetchAll()]);
+    $reviewFilter = customerRequestSchemaReady($db) ? " AND request_status='Approved'" : '';
+    $s=$db->prepare("SELECT id,customer_name,customer_address,delivery_status,latitude,longitude,location_confirmed FROM deliveries WHERE branch_id=? AND assigned_to=? AND delivery_status IN ('Pending','On the way'){$reviewFilter} ORDER BY created_at"); $s->execute([$user['branch_id'],$riderId]); sendSuccess(['deliveries'=>$s->fetchAll()]);
 }
 
 if ($action === 'confirm_location') {
     $id=(int)($body['delivery_id'] ?? 0); $lat=filter_var($body['latitude'] ?? null,FILTER_VALIDATE_FLOAT); $lng=filter_var($body['longitude'] ?? null,FILTER_VALIDATE_FLOAT);
     if (!$id || $lat===false || $lng===false || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) routeError('A valid location is required.');
-    $place=geocodeRequest('/reverse?format=jsonv2&addressdetails=1&lat='.rawurlencode((string)$lat).'&lon='.rawurlencode((string)$lng));
-    if (!isMalilipot($place)) routeError('Selected location is outside Malilipot, Albay and cannot be confirmed.');
-    $s=$db->prepare("UPDATE deliveries SET latitude=?,longitude=?,location_confirmed=1 WHERE id=? AND branch_id=? AND delivery_status IN ('Pending','On the way')"); $s->execute([$lat,$lng,$id,$user['branch_id']]); if(!$s->rowCount()) routeError('Eligible delivery not found.',404); sendSuccess(['confirmed'=>true]);
+    try { bomsValidateMalilipotCoordinates((float)$lat, (float)$lng); } catch (RuntimeException $error) { routeError($error->getMessage(), str_contains($error->getMessage(), 'unavailable') ? 503 : 400); }
+    $approvalFilter = customerRequestSchemaReady($db) ? " AND request_status='Approved'" : '';
+    $s=$db->prepare("UPDATE deliveries SET latitude=?,longitude=?,location_confirmed=1 WHERE id=? AND branch_id=? AND delivery_status IN ('Pending','On the way'){$approvalFilter}"); $s->execute([$lat,$lng,$id,$user['branch_id']]); if(!$s->rowCount()) routeError('Eligible delivery not found.',404); sendSuccess(['confirmed'=>true]);
 }
 
 if ($action === 'search_location') {
@@ -96,7 +99,7 @@ $riderId=(int)($body['rider_id'] ?? 0); $ids=array_values(array_unique(array_map
 if (!$riderId || count($ids)<2) routeError('Select one rider and at least two eligible deliveries.');
 $start=$db->prepare('SELECT * FROM branch_locations WHERE branch_id=?'); $start->execute([$user['branch_id']]); $branch=$start->fetch(); if(!$branch) routeError('This branch has no configured route starting location.');
 $r=$db->prepare("SELECT id FROM users WHERE id=? AND role='deliverer' AND branch_id=? AND status='Active'"); $r->execute([$riderId,$user['branch_id']]); if(!$r->fetch()) routeError('Rider not found in your branch.',404);
-$ph=implode(',',array_fill(0,count($ids),'?')); $q=$db->prepare("SELECT id,customer_name,customer_address,latitude,longitude FROM deliveries WHERE id IN ($ph) AND branch_id=? AND assigned_to=? AND delivery_status IN ('Pending','On the way') AND location_confirmed=1"); $q->execute([...$ids,$user['branch_id'],$riderId]); $stops=$q->fetchAll(); if(count($stops)!==count($ids)) routeError('Every selected delivery must be assigned, eligible, and have a confirmed Malilipot location.');
+$ph=implode(',',array_fill(0,count($ids),'?')); $reviewFilter = customerRequestSchemaReady($db) ? " AND request_status='Approved'" : ''; $q=$db->prepare("SELECT id,customer_name,customer_address,latitude,longitude FROM deliveries WHERE id IN ($ph) AND branch_id=? AND assigned_to=? AND delivery_status IN ('Pending','On the way') AND location_confirmed=1{$reviewFilter}"); $q->execute([...$ids,$user['branch_id'],$riderId]); $stops=$q->fetchAll(); if(count($stops)!==count($ids)) routeError('Every selected delivery must be assigned, eligible, and have a confirmed Malilipot location.');
 $points=array_merge([['latitude'=>$branch['latitude'],'longitude'=>$branch['longitude']]],$stops);
 foreach($points as $point) if(!validRoutePoint($point)) routeError('A delivery or branch starting location has invalid coordinates.');
 $table=roadRequest('/table/v1/driving/'.coordinateString($points).'?annotations=distance,duration','distance-table'); $matrix=$table['durations'] ?? [];

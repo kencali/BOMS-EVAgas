@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BOMS EVA Gas Trading">
+  <rect width="64" height="64" rx="14" fill="#e84a1b"/>
+  <path d="M32 9c2 9-4 12-6 17-2-3-6-6-5-13-7 7-11 14-11 23 0 12 9 20 22 20s22-8 22-20c0-10-6-18-14-26 1 8-3 12-7 16 1-7-1-11-1-17Z" fill="#fff"/>
+  <path d="M32 56c-13 0-22-8-22-20 0-9 4-16 11-23-1 7 3 10 5 13 2-5 8-8 6-17 0 6 2 10 1 17 4-4 8-8 7-16 8 8 14 16 14 26 0 12-9 20-22 20Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+</svg>

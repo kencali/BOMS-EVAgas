@@ -211,6 +211,10 @@ function newSale() {
     loadProducts();
 }
 
+function printReceipt() {
+    window.print();
+}
+
 function showToast(message, type = 'info') {
     const t = document.getElementById('toast');
     t.textContent = message;
