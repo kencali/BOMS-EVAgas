@@ -32,6 +32,9 @@ async function loadRouteOverview() {
         routeMap.render(data.route);
         summary.textContent = BomsRiderRouteMap.summary(data.route);
         stops.innerHTML = BomsRiderRouteMap.sequence(data.route);
+        stops.querySelectorAll('[data-route-stop]').forEach(button => {
+            button.addEventListener('click', () => routeMap.focusStop(button.dataset.routeStop));
+        });
     } catch (error) {
         summary.textContent = 'Route overview could not be loaded.';
         empty.textContent = error.message || 'Route overview could not be loaded.';

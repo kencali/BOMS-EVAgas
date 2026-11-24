@@ -13,6 +13,15 @@ $method = $_SERVER['REQUEST_METHOD'];
 $branchId = (int)(bomsEnvValue('BOMS_CUSTOMER_BRANCH_ID') ?? '1');
 
 function customerError(string $message, int $code = 400): never { sendError($message, $code); }
+function customerJsonRequest(): array {
+    $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
+    $length = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($contentType !== 'application/json') customerError('Unsupported request format.', 415);
+    if ($length < 1 || $length > 8192) customerError('Request is too large or incomplete.', 413);
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body)) customerError('Invalid request data.');
+    return $body;
+}
 function customerReference(PDO $db): string {
     for ($try = 0; $try < 8; $try++) {
         $reference = 'REQ-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
@@ -37,6 +46,7 @@ if ($method === 'GET' && ($_GET['action'] ?? '') === 'location_search') {
     $query = trim((string)($_GET['q'] ?? ''));
     if (mb_strlen($query) < 3 || mb_strlen($query) > 160) customerError('Enter at least three characters to search for a location.');
     try {
+        customerPublicRateLimit($db, 'location-search', 20, 900);
         $places = bomsGeocodeRequest('/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=ph&q=' . rawurlencode($query . ', Malilipot, Albay, Philippines'));
         $places = array_values(array_filter($places, 'bomsIsMalilipot'));
         sendSuccess(['locations' => array_map(fn($place) => [
@@ -44,6 +54,8 @@ if ($method === 'GET' && ($_GET['action'] ?? '') === 'location_search') {
             'latitude' => (float)$place['lat'],
             'longitude' => (float)$place['lon'],
         ], $places)]);
+    } catch (CustomerRateLimitException $error) {
+        customerError($error->getMessage(), 429);
     } catch (RuntimeException $error) {
         customerError($error->getMessage(), 503);
     }
@@ -51,6 +63,8 @@ if ($method === 'GET' && ($_GET['action'] ?? '') === 'location_search') {
 
 if ($method === 'GET' && ($_GET['action'] ?? '') === 'status') {
     if (!customerRequestSchemaReady($db)) customerError('Customer requests are not available until the CUST-001 migration is applied.', 503);
+    try { customerPublicRateLimit($db, 'status-lookup', 20, 900); }
+    catch (CustomerRateLimitException $error) { customerError($error->getMessage(), 429); }
     $reference = strtoupper(trim((string)($_GET['reference'] ?? '')));
     $phone = trim((string)($_GET['phone'] ?? ''));
     if (!preg_match('/^REQ-\d{8}-[A-F0-9]{6}$/', $reference) || !validCustomerPhone($phone)) customerError('Enter your request reference and the contact number used for the request.');
@@ -65,8 +79,7 @@ if ($method === 'GET' && ($_GET['action'] ?? '') === 'status') {
 if ($method !== 'POST') customerError('Method not allowed.', 405);
 if (!customerRequestSchemaReady($db)) customerError('Customer requests are not available until the CUST-001 migration is applied.', 503);
 
-$body = json_decode(file_get_contents('php://input'), true);
-if (!is_array($body)) customerError('Invalid request data.');
+$body = customerJsonRequest();
 $name = trim((string)($body['customer_name'] ?? ''));
 $phone = trim((string)($body['customer_phone'] ?? ''));
 $address = trim((string)($body['customer_address'] ?? ''));
@@ -76,7 +89,9 @@ $quantity = (int)($body['quantity'] ?? 0);
 $latitude = filter_var($body['latitude'] ?? null, FILTER_VALIDATE_FLOAT);
 $longitude = filter_var($body['longitude'] ?? null, FILTER_VALIDATE_FLOAT);
 $token = trim((string)($body['request_token'] ?? ''));
+$honeypot = trim((string)($body['website'] ?? ''));
 
+if ($honeypot !== '') customerError('Unable to submit this request.', 400);
 if (mb_strlen($name) < 2 || mb_strlen($name) > 100) customerError('Enter a valid customer name.');
 if (!validCustomerPhone($phone)) customerError('Enter a valid Philippine mobile number.');
 if (mb_strlen($address) < 5 || mb_strlen($address) > 1000) customerError('Enter a complete delivery address.');
@@ -105,6 +120,9 @@ try {
     $deliveryId = (int)$db->lastInsertId();
     $db->commit();
     sendSuccess(['reference' => $reference, 'delivery_id' => $deliveryId, 'request_status' => 'Pending Review'], 201);
+} catch (CustomerRateLimitException $error) {
+    if ($db->inTransaction()) $db->rollBack();
+    customerError($error->getMessage(), 429);
 } catch (RuntimeException $error) {
     if ($db->inTransaction()) $db->rollBack();
     customerError($error->getMessage(), str_contains($error->getMessage(), 'unavailable') ? 503 : 400);

@@ -168,8 +168,8 @@ async function loadSummary() {
                 datasets: [{
                     label: 'Monthly Revenue',
                     data:  data.chart_revenue,
-                    backgroundColor: 'rgba(232,74,27,.32)',
-                    borderColor:     '#e84a1b',
+                    backgroundColor: 'rgba(0,91,91,.32)',
+                    borderColor:     '#005B5B',
                     borderWidth:     2,
                     borderRadius:    6,
                 }]
@@ -212,8 +212,8 @@ async function loadSalesReport() {
                 datasets: [{
                     label:           'Revenue',
                     data:            data.monthly.map(m => parseFloat(m.revenue)),
-                    borderColor:     '#e84a1b',
-                    backgroundColor: 'rgba(232,74,27,.10)',
+                    borderColor:     '#005B5B',
+                    backgroundColor: 'rgba(0,91,91,.10)',
                     borderWidth:     2.5,
                     pointRadius:     4,
                     tension:         0.4,

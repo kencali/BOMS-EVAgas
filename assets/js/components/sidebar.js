@@ -42,7 +42,7 @@ function renderSidebar() {
         `;
     }).join('');
 
-    const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · Legazpi';
+    const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · San Jose';
 
     document.getElementById('sidebar').innerHTML = `
         <aside class="sidebar boms-role-sidebar admin-sidebar">
@@ -185,7 +185,7 @@ async function updateCustomerRequestIndicator(user, currentPath) {
         }
         .branch-dot {
             width: 6px; height: 6px;
-            background: #FF4B1F;
+            background: var(--flame);
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -206,11 +206,11 @@ async function updateCustomerRequestIndicator(user, currentPath) {
             transition: color .15s, background .15s;
             border-left: 2px solid transparent;
         }
-        .nav-link:hover { color: var(--text); background: #fff5ef; }
+        .nav-link:hover { color: var(--text); background: var(--primary-surface); }
         .nav-link.active {
-            color: #FF4B1F;
-            background: rgba(255,75,31,.08);
-            border-left-color: #FF4B1F;
+            color: var(--flame);
+            background: var(--primary-light);
+            border-left-color: var(--flame);
             font-weight: 600;
         }
         .nav-icon  { font-size: .9rem; width: 18px; text-align: center; flex-shrink: 0; }
@@ -229,7 +229,7 @@ async function updateCustomerRequestIndicator(user, currentPath) {
         }
         .user-avatar {
             width: 32px; height: 32px;
-            background: linear-gradient(135deg, #FF4B1F, #FF9F0A);
+            background: linear-gradient(135deg, var(--flame), var(--primary-hover));
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: .8rem; font-weight: 700; color: white;

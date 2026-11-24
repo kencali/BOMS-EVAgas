@@ -29,7 +29,7 @@ function renderSidebar() {
             </li>`;
     }).join('');
 
-    const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · Legazpi';
+    const branchName = user.branch_id === 1 ? 'Branch A · Malilipot' : 'Branch B · San Jose';
 
     document.getElementById('sidebar').innerHTML = `
         <aside class="sidebar boms-role-sidebar employee-sidebar">
@@ -91,16 +91,16 @@ function renderSidebar() {
         .brand-name  { font-size:1rem; font-weight:700; color:#fff; letter-spacing:.04em; }
         .brand-sub   { font-size:.65rem; color:#9E9B92; letter-spacing:.06em; text-transform:uppercase; }
         .branch-badge { display:flex; align-items:center; gap:.5rem; padding:.75rem 1.25rem; font-size:.72rem; color:#9E9B92; letter-spacing:.06em; text-transform:uppercase; }
-        .branch-dot  { width:6px; height:6px; background:#FF4B1F; border-radius:50%; flex-shrink:0; }
+        .branch-dot  { width:6px; height:6px; background:var(--flame); border-radius:50%; flex-shrink:0; }
         .sidebar-nav { flex:1; padding:.5rem 0; }
         .sidebar-nav ul { list-style:none; margin:0; padding:0; }
         .nav-link { display:flex; align-items:center; gap:.75rem; padding:.65rem 1.25rem; color:#9E9B92; text-decoration:none; font-size:.84rem; border-left:2px solid transparent; transition:color .15s,background .15s; }
         .nav-link:hover { color:#F5F0E8; background:rgba(255,255,255,.04); }
-        .nav-link.active { color:#FF4B1F; background:rgba(255,75,31,.08); border-left-color:#FF4B1F; font-weight:600; }
+        .nav-link.active { color:var(--flame); background:var(--primary-light); border-left-color:var(--flame); font-weight:600; }
         .nav-icon { font-size:.9rem; width:18px; text-align:center; flex-shrink:0; }
         .sidebar-footer { padding:1rem 1.25rem 0; border-top:1px solid rgba(255,255,255,.06); }
         .sidebar-user { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
-        .user-avatar { width:32px; height:32px; background:linear-gradient(135deg,#FF4B1F,#FF9F0A); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:white; flex-shrink:0; }
+        .user-avatar { width:32px; height:32px; background:linear-gradient(135deg,var(--flame),var(--primary-hover)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:white; flex-shrink:0; }
         .user-name { font-size:.82rem; font-weight:600; color:#F5F0E8; }
         .user-role { font-size:.68rem; color:#9E9B92; text-transform:capitalize; }
         .btn-logout { width:100%; padding:.55rem; background:rgba(255,59,48,.1); border:1px solid rgba(255,59,48,.2); border-radius:8px; color:#FF6B61; font-family:'Sora',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer; transition:background .15s; }

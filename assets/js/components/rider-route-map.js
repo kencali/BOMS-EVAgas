@@ -2,14 +2,21 @@
 // It renders only the authenticated rider's route data returned by routes?mine=1.
 const BomsRiderRouteMap = (() => {
     const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    const formatCoordinates = stop => {
+        const latitude = Number(stop.latitude);
+        const longitude = Number(stop.longitude);
+        return Number.isFinite(latitude) && Number.isFinite(longitude)
+            ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            : 'Coordinates unavailable';
+    };
 
     function markerIcon(label, kind = 'stop') {
         return L.divIcon({
             className: `boms-route-marker boms-route-marker-${kind}`,
             html: `<span>${esc(label)}</span>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -18],
+            iconSize: [36, 44],
+            iconAnchor: [18, 42],
+            popupAnchor: [0, -40],
         });
     }
 
@@ -19,6 +26,7 @@ const BomsRiderRouteMap = (() => {
             attribution: '© OpenStreetMap contributors',
         }).addTo(map);
         let layer = null;
+        let stopMarkers = [];
 
         function resize() {
             requestAnimationFrame(() => map.invalidateSize({ pan: false }));
@@ -26,6 +34,7 @@ const BomsRiderRouteMap = (() => {
 
         function render(route) {
             if (layer) layer.remove();
+            stopMarkers = [];
             if (!route) return;
 
             layer = L.layerGroup().addTo(map);
@@ -39,15 +48,16 @@ const BomsRiderRouteMap = (() => {
             route.stops.forEach((stop, index) => {
                 const point = [Number(stop.latitude), Number(stop.longitude)];
                 points.push(point);
-                L.marker(point, { icon: markerIcon(index + 1), zIndexOffset: 1000 })
+                const marker = L.marker(point, { icon: markerIcon(index + 1), zIndexOffset: 1000 })
                     .addTo(layer)
-                    .bindPopup(`${index + 1}. ${esc(stop.customer_name)}<br>${esc(stop.customer_address)}<br>${esc(stop.delivery_status)}`);
+                    .bindPopup(`<strong>${index + 1}. ${esc(stop.customer_name)}</strong><br>${esc(stop.customer_address)}<br>${esc(stop.delivery_status)}<br><small>Saved pin: ${esc(formatCoordinates(stop))}</small>`);
+                stopMarkers[index] = marker;
             });
 
             const geometry = route.geometry?.coordinates;
             if (geometry?.length) {
                 const line = geometry.map(point => [point[1], point[0]]);
-                L.polyline(line, { color: '#e84a1b', weight: 5, opacity: .9 }).addTo(layer);
+                L.polyline(line, { color: getComputedStyle(document.documentElement).getPropertyValue('--flame').trim() || '#005B5B', weight: 5, opacity: .9 }).addTo(layer);
                 map.fitBounds(line, { padding: [34, 34] });
             } else if (points.length) {
                 map.fitBounds(points, { padding: [34, 34] });
@@ -55,7 +65,14 @@ const BomsRiderRouteMap = (() => {
             resize();
         }
 
-        return { map, render, resize };
+        function focusStop(index) {
+            const marker = stopMarkers[Number(index)];
+            if (!marker) return;
+            map.setView(marker.getLatLng(), 18, { animate: true });
+            marker.openPopup();
+        }
+
+        return { map, render, resize, focusStop };
     }
 
     function summary(route) {
@@ -64,7 +81,7 @@ const BomsRiderRouteMap = (() => {
 
     function sequence(route) {
         return route.stops.map((stop, index) =>
-            `<li><strong>${index + 1}. ${esc(stop.customer_name)}</strong> — ${esc(stop.customer_address)} (${esc(stop.delivery_status)})</li>`
+            `<li><button class="route-stop-focus" type="button" data-route-stop="${index}"><strong>${index + 1}. ${esc(stop.customer_name)}</strong> — ${esc(stop.customer_address)}</button><small>Saved pin: ${esc(formatCoordinates(stop))} · ${esc(stop.delivery_status)}</small></li>`
         ).join('');
     }
 

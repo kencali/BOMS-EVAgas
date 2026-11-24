@@ -37,8 +37,11 @@ const Theme = {
             --white:       #FFFFFF;
             --input-bg:    #F5F1EB;
             --shadow:      0 2px 12px rgba(0,0,0,.08);
-            --flame:       #E8390D;
-            --flame-soft:  rgba(232,57,13,.1);
+            --flame:       #005B5B;
+            --primary-hover:#004747;
+            --primary-light:#e4f3f1;
+            --primary-surface:#f2f9f8;
+            --flame-soft:  rgba(0,91,91,.1);
             --amber:       #D97706;
             --green:       #16A34A;
             --red:         #DC2626;

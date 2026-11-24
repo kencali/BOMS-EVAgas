@@ -20,6 +20,12 @@
     }
     const requestToken = token();
     function message(id, text = '', kind = '') { const el = $(id); el.textContent = text; el.className = `form-message ${kind}`; }
+    function setSubmitting(active) {
+        const button = $('submitRequest');
+        submitting = active;
+        button.disabled = active;
+        button.querySelector('.button-label').textContent = active ? 'Sending request…' : 'Send delivery request';
+    }
     function customerPinIcon() {
         return L.divIcon({
             className: 'boms-customer-pin',
@@ -82,12 +88,13 @@
         if (!selectedLocation) return message('formMessage', 'Choose and review your delivery location on the map first.', 'error');
         const form = $('requestForm');
         if (!form.reportValidity()) return;
-        submitting = true; $('submitRequest').disabled = true; message('formMessage', 'Sending your delivery request…');
+        setSubmitting(true); message('formMessage', 'Sending your delivery request…');
         try {
             const result = await request('', { method: 'POST', body: JSON.stringify({
                 customer_name: $('customerName').value.trim(), customer_phone: $('customerPhone').value.trim(), customer_address: $('customerAddress').value.trim(),
                 product_id: Number($('productId').value), quantity: Number($('quantity').value), notes: $('notes').value.trim(),
                 latitude: selectedLocation.latitude, longitude: selectedLocation.longitude, request_token: requestToken,
+                website: $('website').value,
             }) });
             const duplicate = result.duplicate ? 'This request was already received.' : 'Your delivery request was received.';
             $('confirmation').hidden = false;
@@ -95,7 +102,7 @@
             $('confirmation').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             form.reset(); $('locationResults').innerHTML = ''; message('formMessage', '', 'success');
         } catch (error) { message('formMessage', error.message, 'error'); }
-        finally { submitting = false; $('submitRequest').disabled = false; }
+        finally { setSubmitting(false); }
     }
     async function checkStatus(event) {
         event.preventDefault(); message('statusMessage', 'Checking request…');

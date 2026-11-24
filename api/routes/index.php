@@ -45,13 +45,30 @@ function isMalilipot(array $place): bool {
 }
 function coordinateString(array $points): string { return implode(';', array_map(fn($p) => $p['longitude'] . ',' . $p['latitude'], $points)); }
 function validRoutePoint(array $point): bool { return isset($point['latitude'],$point['longitude']) && is_numeric($point['latitude']) && is_numeric($point['longitude']) && (float)$point['latitude'] >= -90 && (float)$point['latitude'] <= 90 && (float)$point['longitude'] >= -180 && (float)$point['longitude'] <= 180; }
-function twoOpt(array $order, array $matrix): array {
-    $changed = true; $n = count($order);
-    while ($changed) { $changed = false; for ($i=1; $i<$n-1; $i++) for ($k=$i+1; $k<$n; $k++) {
-        $a=$order[$i-1]; $b=$order[$i]; $c=$order[$k]; $d=$order[$k+1] ?? null;
-        $before=$matrix[$a][$b]+($d===null?0:$matrix[$c][$d]); $after=$matrix[$a][$c]+($d===null?0:$matrix[$b][$d]);
-        if ($after < $before) { $order=array_merge(array_slice($order,0,$i), array_reverse(array_slice($order,$i,$k-$i+1)), array_slice($order,$k+1)); $changed=true; }
-    }} return $order;
+function optimizeRoadTrip(array $points): array {
+    // Keep the branch as the first waypoint. OSRM determines the best non-returning stop order on the road network.
+    $trip = roadRequest('/trip/v1/driving/' . coordinateString($points) . '?source=first&roundtrip=false&overview=full&geometries=geojson', 'trip-optimization');
+    $road = $trip['trips'][0] ?? null;
+    $waypoints = $trip['waypoints'] ?? [];
+    if (!$road || empty($road['geometry']['coordinates']) || count($waypoints) !== count($points)) {
+        routeError('Routing provider returned an incomplete optimized road route.', 503);
+    }
+
+    $orderByRouteIndex = [];
+    foreach ($waypoints as $inputIndex => $waypoint) {
+        $routeIndex = filter_var($waypoint['waypoint_index'] ?? null, FILTER_VALIDATE_INT);
+        if ($routeIndex === false || $routeIndex < 0 || $routeIndex >= count($points) || isset($orderByRouteIndex[$routeIndex])) {
+            routeError('Routing provider returned an invalid stop sequence.', 503);
+        }
+        $orderByRouteIndex[$routeIndex] = $inputIndex;
+    }
+    ksort($orderByRouteIndex);
+    $order = array_values($orderByRouteIndex);
+    if (($order[0] ?? null) !== 0 || count($order) !== count($points)) {
+        routeError('Routing provider could not keep the branch as the route starting point.', 503);
+    }
+
+    return ['road' => $road, 'order' => $order, 'waypoints' => $waypoints];
 }
 
 if ($method === 'GET' && isset($_GET['mine'])) {
@@ -102,10 +119,25 @@ $r=$db->prepare("SELECT id FROM users WHERE id=? AND role='deliverer' AND branch
 $ph=implode(',',array_fill(0,count($ids),'?')); $reviewFilter = customerRequestSchemaReady($db) ? " AND request_status='Approved'" : ''; $q=$db->prepare("SELECT id,customer_name,customer_address,latitude,longitude FROM deliveries WHERE id IN ($ph) AND branch_id=? AND assigned_to=? AND delivery_status IN ('Pending','On the way') AND location_confirmed=1{$reviewFilter}"); $q->execute([...$ids,$user['branch_id'],$riderId]); $stops=$q->fetchAll(); if(count($stops)!==count($ids)) routeError('Every selected delivery must be assigned, eligible, and have a confirmed Malilipot location.');
 $points=array_merge([['latitude'=>$branch['latitude'],'longitude'=>$branch['longitude']]],$stops);
 foreach($points as $point) if(!validRoutePoint($point)) routeError('A delivery or branch starting location has invalid coordinates.');
-$table=roadRequest('/table/v1/driving/'.coordinateString($points).'?annotations=distance,duration','distance-table'); $matrix=$table['durations'] ?? [];
-if(count($matrix)!==count($points)) routeError('Routing provider returned incomplete road-distance data.',503);
-foreach($matrix as $row) if(count($row)!==count($points) || in_array(null,$row,true)) routeError('No road route is available between one or more selected stops.');
-$order=[0]; $remaining=array_keys($stops); while($remaining){$last=end($order); usort($remaining,fn($a,$b)=>$matrix[$last][$a+1]<=>$matrix[$last][$b+1]); $next=array_shift($remaining)+1; $order[]=$next;} $order=twoOpt($order,$matrix);
-$orderedStops=[]; foreach(array_slice($order,1) as $pointIndex)$orderedStops[]=$stops[$pointIndex-1]; $route=roadRequest('/route/v1/driving/'.coordinateString(array_map(fn($i)=>$points[$i],$order)).'?overview=full&geometries=geojson','route-geometry'); $road=$route['routes'][0] ?? null;
-if(!$road || empty($road['geometry']['coordinates'])) routeError('Routing provider did not return a usable road route.',503);
-$db->beginTransaction(); try { $db->prepare("UPDATE delivery_routes SET route_status='Archived' WHERE rider_id=? AND route_status='Planned'")->execute([$riderId]); $i=$db->prepare('INSERT INTO delivery_routes (branch_id,rider_id,created_by,total_distance_m,total_duration_s,geometry_json) VALUES (?,?,?,?,?,?)'); $i->execute([$user['branch_id'],$riderId,$user['user_id'],(int)$road['distance'],(int)$road['duration'],json_encode($road['geometry'])]); $routeId=(int)$db->lastInsertId(); $si=$db->prepare('INSERT INTO delivery_route_stops (route_id,delivery_id,stop_sequence) VALUES (?,?,?)'); foreach($orderedStops as $n=>$stop)$si->execute([$routeId,$stop['id'],$n+1]); $db->commit(); sendSuccess(['route_id'=>$routeId,'stops'=>$orderedStops,'distance_m'=>(int)$road['distance'],'duration_s'=>(int)$road['duration'],'geometry'=>$road['geometry'],'start'=>['name'=>$branch['location_name'],'latitude'=>(float)$branch['latitude'],'longitude'=>(float)$branch['longitude']]],201); } catch(Throwable $e){if($db->inTransaction())$db->rollBack(); error_log('BOMS route plan save failed.'); routeError('Route could not be saved.',500);}
+$optimized = optimizeRoadTrip($points);
+$order = $optimized['order'];
+$road = $optimized['road'];
+$orderedStops=[]; foreach(array_slice($order,1) as $pointIndex)$orderedStops[]=$stops[$pointIndex-1];
+
+// OSRM snaps points to the nearest drivable road. Surface distant snaps so an Admin can recheck an imprecise pin.
+$locationWarnings = [];
+foreach ($optimized['waypoints'] as $pointIndex => $waypoint) {
+    if ($pointIndex === 0) continue;
+    $snapDistance = (float)($waypoint['distance'] ?? 0);
+    if ($snapDistance > 100) {
+        $stop = $stops[$pointIndex - 1];
+        $locationWarnings[] = [
+            'delivery_id' => (int)$stop['id'],
+            'customer_name' => $stop['customer_name'],
+            'distance_m' => (int)round($snapDistance),
+            'latitude' => (float)$stop['latitude'],
+            'longitude' => (float)$stop['longitude'],
+        ];
+    }
+}
+$db->beginTransaction(); try { $db->prepare("UPDATE delivery_routes SET route_status='Archived' WHERE rider_id=? AND route_status='Planned'")->execute([$riderId]); $i=$db->prepare('INSERT INTO delivery_routes (branch_id,rider_id,created_by,total_distance_m,total_duration_s,geometry_json) VALUES (?,?,?,?,?,?)'); $i->execute([$user['branch_id'],$riderId,$user['user_id'],(int)$road['distance'],(int)$road['duration'],json_encode($road['geometry'])]); $routeId=(int)$db->lastInsertId(); $si=$db->prepare('INSERT INTO delivery_route_stops (route_id,delivery_id,stop_sequence) VALUES (?,?,?)'); foreach($orderedStops as $n=>$stop)$si->execute([$routeId,$stop['id'],$n+1]); $db->commit(); sendSuccess(['route_id'=>$routeId,'stops'=>$orderedStops,'distance_m'=>(int)$road['distance'],'duration_s'=>(int)$road['duration'],'geometry'=>$road['geometry'],'location_warnings'=>$locationWarnings,'start'=>['name'=>$branch['location_name'],'latitude'=>(float)$branch['latitude'],'longitude'=>(float)$branch['longitude']]],201); } catch(Throwable $e){if($db->inTransaction())$db->rollBack(); error_log('BOMS route plan save failed.'); routeError('Route could not be saved.',500);}

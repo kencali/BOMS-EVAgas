@@ -20,7 +20,7 @@ button, input, select, textarea { max-width: 100%; }
   .main-content { width: 100%; max-width: none !important; min-width: 0; padding: calc(var(--mobile-topbar-height) + 1rem) 1rem 1rem !important; overflow: visible !important; }
   .main-content::before, .main-content::after { display: none; }
   .mobile-nav-shell { display: block; }
-  .mobile-topbar { position: fixed; inset: 0 0 auto; z-index: 110; box-sizing: border-box; height: var(--mobile-topbar-height); display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .65rem 1rem; background: linear-gradient(135deg, #f65a24, var(--flame) 65%, #c93b16); border-bottom: 1px solid rgba(255,255,255,.22); box-shadow: 0 2px 12px rgba(99,38,16,.24); }
+  .mobile-topbar { position: fixed; inset: 0 0 auto; z-index: 110; box-sizing: border-box; height: var(--mobile-topbar-height); display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .65rem 1rem; background: linear-gradient(135deg, #007373, var(--flame) 65%, #003f3f); border-bottom: 1px solid rgba(255,255,255,.22); box-shadow: 0 2px 12px rgba(0,55,55,.24); }
   .mobile-brand { display: inline-flex; align-items: center; gap: .55rem; min-width: 0; color: #fff; text-decoration: none; }
   .mobile-brand-icon { color: #fff; display: inline-flex; }
   .mobile-brand-icon .boms-icon { width: 1.35rem; height: 1.35rem; }

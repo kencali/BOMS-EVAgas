@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Request Delivery · EVA Gas Trading</title>
+  <meta name="description" content="Request LPG delivery and check delivery-request status with EVA Gas Trading.">
+  <title>EVA Gas Trading · Delivery</title>
   <link rel="icon" type="image/svg+xml" href="/BOMS-EVAgas/assets/images/boms-favicon.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="/BOMS-EVAgas/assets/css/light-theme.css">
@@ -11,55 +12,35 @@
 </head>
 <body class="customer-page">
   <header class="customer-header">
-    <a class="customer-brand" href="index.html" aria-label="EVA Gas Trading delivery requests">
-      <span class="brand-mark" data-icon="flame" aria-hidden="true"></span>
-      <span><strong>BOMS</strong><small>EVA Gas Trading</small></span>
-    </a>
-    <a class="customer-header-link" href="#statusLookup">Check request</a>
+    <a class="customer-brand" href="#top" aria-label="EVA Gas Trading"><span class="brand-mark" data-icon="flame" aria-hidden="true"></span><span><strong>BOMS</strong><small>EVA Gas Trading</small></span></a>
+    <nav class="customer-nav" aria-label="Customer navigation"><a href="#services">Services</a><a href="#statusLookup">Check request</a><a class="customer-header-link" href="#request">Request delivery</a></nav>
   </header>
-
-  <main class="customer-main">
-    <section class="customer-hero">
-      <p class="eyebrow">MALILIPOT DELIVERY</p>
-      <h1>Request LPG delivery</h1>
-      <p>Choose your LPG product, add your delivery details, and pin the exact location for Admin review.</p>
+  <main id="top">
+    <section class="customer-landing" aria-labelledby="welcomeTitle">
+      <div class="landing-copy"><p class="eyebrow eyebrow-light">EVA Gas Trading · MALILIPOT</p><h1 id="welcomeTitle">LPG delivery made simple.</h1><p>Request available LPG for delivery, provide your exact location, and check your request status when you need an update.</p><div class="landing-actions"><a class="button-primary landing-primary" href="#request"><span data-icon="truck" aria-hidden="true"></span> Request LPG delivery</a><a class="button-ghost" href="#statusLookup"><span data-icon="search" aria-hidden="true"></span> Check a request</a></div><p class="landing-note"><span data-icon="check" aria-hidden="true"></span> Requests are reviewed by EVA Gas Trading before a rider is assigned.</p></div>
+      <aside class="landing-panel" aria-label="How the delivery request works"><p class="eyebrow">HOW IT WORKS</p><ol class="service-steps"><li><span>1</span><div><strong>Send your request</strong><small>Choose a product and add delivery details.</small></div></li><li><span>2</span><div><strong>Pin your location</strong><small>Help us find the correct delivery address.</small></div></li><li><span>3</span><div><strong>Wait for review</strong><small>Admin confirms the request before dispatch.</small></div></li></ol></aside>
     </section>
-
-    <section class="portal-card" aria-labelledby="requestTitle">
-      <div class="section-heading"><div><p class="eyebrow">DELIVERY REQUEST</p><h2 id="requestTitle">Your order details</h2></div><span class="required-note">* Required</span></div>
-      <form id="requestForm" novalidate>
-        <div class="form-grid">
-          <label>Full name *<input id="customerName" name="customer_name" maxlength="100" autocomplete="name" required></label>
-          <label>Mobile number *<input id="customerPhone" name="customer_phone" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="09XX XXX XXXX" required></label>
-        </div>
-        <label>Available LPG product *<select id="productId" name="product_id" required><option value="">Loading products…</option></select></label>
-        <label>Quantity *<input id="quantity" name="quantity" type="number" min="1" max="50" value="1" inputmode="numeric" required></label>
-        <label>Delivery address / landmark *<textarea id="customerAddress" name="customer_address" rows="3" maxlength="1000" placeholder="House number, street, barangay, and a nearby landmark" required></textarea></label>
-        <label>Optional delivery notes<textarea id="notes" name="notes" rows="2" maxlength="1000" placeholder="Gate color, preferred delivery note, or other helpful detail"></textarea></label>
-
-        <section class="location-section" aria-labelledby="locationTitle">
-          <div class="section-heading compact"><div><h3 id="locationTitle">Pin your delivery location *</h3><p>Search, tap the map, drag the marker, or use your device location. Review the pin before sending.</p></div></div>
-          <div class="location-search-row"><input id="locationSearch" type="search" placeholder="Search in Malilipot, Albay"><button id="searchLocation" type="button" class="button-secondary">Search</button><button id="useLocation" type="button" class="button-secondary">Use my location</button></div>
-          <div id="locationResults" class="location-results" aria-live="polite"></div>
-          <div id="customerMap" aria-label="Delivery location map"></div>
-          <p id="locationInfo" class="location-info">No location selected yet.</p>
-        </section>
-        <p id="formMessage" class="form-message" role="alert"></p>
-        <button id="submitRequest" class="button-primary" type="submit">Send delivery request</button>
-        <p class="privacy-note">Your request is subject to Admin review and location confirmation. No payment, sale, or stock deduction occurs when you submit this form.</p>
-      </form>
+    <section id="services" class="services-section" aria-labelledby="servicesTitle">
+      <div class="section-intro"><p class="eyebrow">CUSTOMER SERVICES</p><h2 id="servicesTitle">Choose what you need</h2><p>Start a new request, set your delivery location, or check a request you already sent.</p></div>
+      <nav class="service-grid" aria-label="Customer services"><a class="service-card service-nav-card" href="#request"><span class="service-icon" data-icon="cart" aria-hidden="true"></span><span class="service-card-content"><strong>Request LPG</strong><small>Choose a product and send your request.</small></span><span class="service-card-arrow" data-icon="arrowRight" aria-hidden="true"></span></a><a class="service-card service-nav-card" href="#locationTitle"><span class="service-icon blue" data-icon="map" aria-hidden="true"></span><span class="service-card-content"><strong>Set location</strong><small>Pin the exact place for delivery.</small></span><span class="service-card-arrow" data-icon="arrowRight" aria-hidden="true"></span></a><a class="service-card service-nav-card" href="#statusLookup"><span class="service-icon green" data-icon="search" aria-hidden="true"></span><span class="service-card-content"><strong>Check status</strong><small>See the latest update on a request.</small></span><span class="service-card-arrow" data-icon="arrowRight" aria-hidden="true"></span></a></nav>
     </section>
-
-    <section id="confirmation" class="portal-card confirmation" hidden aria-live="polite"></section>
-    <section id="statusLookup" class="portal-card lookup-card">
-      <div class="section-heading compact"><div><p class="eyebrow">REQUEST STATUS</p><h2>Check an existing request</h2><p>Enter the reference and mobile number used when you submitted it.</p></div></div>
-      <form id="statusForm" class="lookup-form"><input id="statusReference" placeholder="REQ-YYYYMMDD-XXXXXX" maxlength="20"><input id="statusPhone" placeholder="Mobile number" maxlength="20" inputmode="tel"><button type="submit" class="button-secondary">Check status</button></form>
-      <p class="privacy-note">Use the same mobile number entered with the request. Location confirmation and rider assignment happen only after Admin review.</p>
-      <p id="statusMessage" class="form-message" role="status"></p>
-    </section>
+    <div class="customer-content">
+      <section id="request" class="portal-card request-card" aria-labelledby="requestTitle">
+        <div class="section-heading"><div><p class="eyebrow">NEW DELIVERY REQUEST</p><h2 id="requestTitle">Request LPG delivery</h2><p>Complete the details below. We will review your request before scheduling delivery.</p></div><span class="required-note">* Required</span></div>
+        <form id="requestForm" novalidate>
+          <input class="honeypot-field" id="website" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <fieldset><legend>1. Your contact details</legend><p class="field-help">Use the name and mobile number of the person who will receive the LPG.</p><div class="form-grid"><label><span class="field-label">Full name <b aria-hidden="true">*</b></span><input id="customerName" name="customer_name" placeholder="e.g., Juan dela Cruz" maxlength="100" autocomplete="name" required aria-describedby="nameHelp"><small id="nameHelp">We use this to identify the request.</small></label><label><span class="field-label">Mobile number <b aria-hidden="true">*</b></span><input id="customerPhone" name="customer_phone" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="e.g., 0917 123 4567" required aria-describedby="phoneHelp"><small id="phoneHelp">We may use this number for delivery updates.</small></label></div></fieldset>
+          <fieldset><legend>2. What do you need?</legend><p class="field-help">Choose the LPG product and number of cylinders. Only available products are listed.</p><div class="form-grid"><label><span class="field-label">LPG product <b aria-hidden="true">*</b></span><select id="productId" name="product_id" required><option value="">Choose an LPG product</option></select></label><label><span class="field-label">Number of cylinders <b aria-hidden="true">*</b></span><input id="quantity" name="quantity" type="number" min="1" max="50" value="1" inputmode="numeric" required><small>Enter how many cylinders you need.</small></label></div></fieldset>
+          <fieldset><legend>3. Delivery details</legend><p class="field-help">Add the full address and a landmark so the rider can find you.</p><label><span class="field-label">Address and nearby landmark <b aria-hidden="true">*</b></span><textarea id="customerAddress" name="customer_address" rows="3" maxlength="1000" placeholder="House number, street, barangay, and nearby landmark" required></textarea></label><label><span class="field-label">Extra delivery note <em>(optional)</em></span><textarea id="notes" name="notes" rows="2" maxlength="1000" placeholder="For example: blue gate, beside the chapel, or preferred contact time"></textarea></label></fieldset>
+          <section class="location-section" aria-labelledby="locationTitle"><div class="section-heading compact"><div><h3 id="locationTitle">4. Pin the delivery location <span aria-hidden="true">*</span></h3><p>Search for your area, tap the map, or use your phone location. Drag the pin if needed, then check it before sending.</p></div></div><div class="location-search-row"><input id="locationSearch" type="search" maxlength="160" placeholder="Search barangay, street, or landmark" aria-label="Search for a delivery location"><button id="searchLocation" type="button" class="button-secondary"><span data-icon="search" aria-hidden="true"></span> Search</button><button id="useLocation" type="button" class="button-secondary"><span data-icon="map" aria-hidden="true"></span> Use my location</button></div><div id="locationResults" class="location-results" aria-live="polite"></div><div id="customerMap" aria-label="Delivery location map"></div><p id="locationInfo" class="location-info">No pin selected yet.</p></section>
+          <p id="formMessage" class="form-message" role="alert"></p><button id="submitRequest" class="button-primary" type="submit"><span data-icon="truck" aria-hidden="true"></span><span class="button-label">Send delivery request</span></button><p class="privacy-note"><span data-icon="alert" aria-hidden="true"></span> Sending this request does not charge you or reserve stock. EVA Gas Trading will review it first.</p>
+        </form>
+      </section>
+      <section id="confirmation" class="portal-card confirmation" hidden aria-live="polite"></section>
+      <section id="statusLookup" class="portal-card lookup-card" aria-labelledby="statusTitle"><div class="section-heading compact"><div><p class="eyebrow">REQUEST STATUS</p><h2 id="statusTitle">Check an existing request</h2><p>Enter the reference and mobile number used when you submitted your request.</p></div></div><form id="statusForm" class="lookup-form"><label>Request reference<input id="statusReference" placeholder="REQ-REFERENCE-NUMBER" maxlength="20" autocomplete="off" required></label><label>Mobile number<input id="statusPhone" placeholder="Phone number" maxlength="20" inputmode="tel" autocomplete="tel" required></label><button type="submit" class="button-secondary"><span data-icon="search" aria-hidden="true"></span> Check status</button></form><p class="privacy-note"><span data-icon="check" aria-hidden="true"></span> Use the same mobile number entered with the request. Location confirmation and rider assignment happen only after Admin review.</p><p id="statusMessage" class="form-message" role="status"></p></section>
+    </div>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/BOMS-EVAgas/assets/js/components/icons.js"></script>
-  <script src="/BOMS-EVAgas/assets/js/customer/portal.js"></script>
+  <footer class="customer-footer"><div><strong>EVA Gas Trading</strong><span>Business Operations Management System</span></div><p>For LPG delivery requests in Malilipot, Albay.</p></footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="/BOMS-EVAgas/assets/js/components/icons.js"></script><script src="/BOMS-EVAgas/assets/js/customer/portal.js"></script>
 </body>
 </html>

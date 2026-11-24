@@ -69,6 +69,6 @@ async function loadDeliveries() {
 document.addEventListener('DOMContentLoaded', () => {
     renderSidebar();
     document.getElementById('branchLabel').textContent =
-        `Branch ${currentUser.branch_id === 1 ? 'A · Malilipot' : 'B · Legazpi'} deliveries`;
+        `Branch ${currentUser.branch_id === 1 ? 'A · Malilipot' : 'B · San Jose'} deliveries`;
     loadDeliveries();
 });

@@ -117,10 +117,10 @@ function renderChart({ labels, totals }) {
             datasets: [{
                 label: 'Monthly Sales (₱)',
                 data: totals,
-                borderColor: '#e84a1b',
-                backgroundColor: 'rgba(232,74,27,.10)',
+                borderColor: '#005B5B',
+                backgroundColor: 'rgba(0,91,91,.10)',
                 borderWidth: 2.5,
-                pointBackgroundColor: '#e84a1b',
+                pointBackgroundColor: '#005B5B',
                 pointRadius: 4,
                 pointHoverRadius: 6,
                 tension: 0.4,

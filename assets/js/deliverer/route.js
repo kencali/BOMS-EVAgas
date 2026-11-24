@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         map.render(data.route);
         document.getElementById('routeSummary').textContent = BomsRiderRouteMap.summary(data.route);
         document.getElementById('routeSequence').innerHTML = BomsRiderRouteMap.sequence(data.route);
+        document.querySelectorAll('[data-route-stop]').forEach(button => {
+            button.addEventListener('click', () => map.focusStop(button.dataset.routeStop));
+        });
     } catch (error) {
         document.getElementById('routeSummary').textContent = error.message || 'Route could not be loaded.';
     }
